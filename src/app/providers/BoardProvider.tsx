@@ -1,11 +1,12 @@
+import { useBoards, type AddBoardToWorkspaceRequest } from "@/features/boards";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 interface Board {
-    id: number;
+    id: string;
     name: string;
     description: string;
-    tasksCount: number;
-    membersCount: number;
+    tasksCount?: number;
+    membersCount?: number;
 }
 
 interface BoardContextType {
@@ -14,46 +15,31 @@ interface BoardContextType {
     isEditDialogOpen: boolean;
     setBoards: React.Dispatch<React.SetStateAction<Board[]>>;
     selectBoard: (board: Board | null) => void;
-    editBoard: (boardId: number) => void;
-    deleteBoard: (boardId: number) => void;
-    updateBoard: (boardId: number, name: string, description: string) => void; 
+    editBoard: (boardId: string) => void;
+    deleteBoard: (boardId: string) => void;
+    updateBoard: (boardId: string, name: string, description: string) => void; 
+    createBoard: (request: AddBoardToWorkspaceRequest) => Promise<void>;
     closeEditDialog: () => void;
+    fetchBoardsByWorkspace: (workspaceId: string) => Promise<void>;
 }
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
 
 export function BoardProvider({ children }: { children: ReactNode }) {
-    const [boards, setBoards] = useState<Board[]>([
-        {
-            id: 1,
-            name: "Marketing Campaign",
-            description: "Q4 marketing initiatives and campaigns",
-            tasksCount: 8,
-            membersCount: 5
-        },
-        {
-            id: 2,
-            name: "Product Development",
-            description: "New feature development sprint",
-            tasksCount: 12,
-            membersCount: 7
-        },
-        {
-            id: 3,
-            name: "Design System",
-            description: "UI/UX components library",
-            tasksCount: 6,
-            membersCount: 3
-        },
-        {
-            id: 4,
-            name: "Customer Support",
-            description: "Support tickets and issues",
-            tasksCount: 15,
-            membersCount: 4
-        }
-    ]);
+    const [boards, setBoards] = useState<Board[]>([]);
 
+    const { getAllBoardsOfWorkspace, addBoardToWorkspace } = useBoards();
+    
+    // Lấy tất cả board của workspace
+    const fetchBoardsByWorkspace = async (workspaceId: string) => {
+        try {
+            const data = await getAllBoardsOfWorkspace(workspaceId);
+            setBoards(data as unknown as Board[]);
+        } catch (err) {
+            setBoards([]);
+        }
+    }
+    
     const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -61,7 +47,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         setSelectedBoard(board);
     };
 
-    const editBoard = (boardId: number) => {
+    const editBoard = (boardId: string) => {
         const board = boards.find(b => b.id === boardId);
         if (board) {
             setSelectedBoard(board);
@@ -69,7 +55,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const deleteBoard = (boardId: number) => {
+    const deleteBoard = (boardId: string) => {
         const board = boards.find(b => b.id === boardId);
         if (board && confirm(`Delete "${board.name}"?`)) {
             setBoards(prevBoards => prevBoards.filter(b => b.id !== boardId));
@@ -77,8 +63,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    // ✨ Function update board
-    const updateBoard = (boardId: number, name: string, description: string) => {
+    const updateBoard = (boardId: string, name: string, description: string) => {
         setBoards(prevBoards =>
             prevBoards.map(board =>
                 board.id === boardId
@@ -96,6 +81,16 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         setSelectedBoard(null);
     };
 
+    const createBoard = async (request: AddBoardToWorkspaceRequest): Promise<void> => {
+        try {
+            const newBoard = await addBoardToWorkspace(request);
+            setBoards(prevBoards => [...prevBoards, newBoard as unknown as Board]);
+
+        } catch (err) {
+            console.error(`Failed to create board: ${err}`);
+            throw err;
+        }
+    }
     return (
         <BoardContext.Provider
             value={{
@@ -107,7 +102,9 @@ export function BoardProvider({ children }: { children: ReactNode }) {
                 editBoard,
                 deleteBoard,
                 updateBoard,    
-                closeEditDialog
+                createBoard,
+                closeEditDialog,
+                fetchBoardsByWorkspace
             }}
         >
             {children}

@@ -1,16 +1,6 @@
-import { Menu, Transition } from "@headlessui/react"
-import { Fragment } from "react"
-import { FiCheck, FiPlus } from "react-icons/fi";
-
 export function InfoWorkspace() {
-    const allWorkspaces = [
-        { id: '1', name: 'Company Workspace', boardCount: 2 },
-        { id: '2', name: 'Personal Projects', boardCount: 1 },
-    ];
-    const currentWorkspaceId = '1';
     return (
-        <Menu as="div" className="relative">
-        <Menu.Button className="p-4 hover:bg-gray-100 transition-colors rounded-lg m-1 text-left">
+        <div className="p-4 transition-colors rounded-lg m-1 text-left">
           <div className="flex items-center gap-4 select-none">
             {/* Logo */}
             <div className="w-10 h-10 rounded flex items-center justify-center font-semibold text-sm text-white font-bold">
@@ -18,83 +8,9 @@ export function InfoWorkspace() {
             </div>
             {/* Workspace Name */}
             <div className="flex-col flex-1">
-              <div className="text-sm font-semibold text-gray-900">Company Workspace</div>
-              <div className="text-xs text-gray-500">Main company workspace</div>
-            </div>
-            {/* Chevron Icon */}
-            <div className="w-3 h-3 ml-auto text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+              <h1 className="text-lg font-bold">Trello Clone</h1>
             </div>
           </div>
-        </Menu.Button>
-
-        <Transition
-          as={Fragment}
-          enter="transition ease-out duration-100"
-          enterFrom="transform opacity-0 scale-95"
-          enterTo="transform opacity-100 scale-100"
-          leave="transition ease-in duration-75"
-          leaveFrom="transform opacity-100 scale-100"
-          leaveTo="transform opacity-0 scale-95"
-        >
-          <Menu.Items className="absolute top-2 left-full ml-2 w-72 origin-top-left bg-white rounded-md shadow-lg border border-gray-200 focus:outline-none">
-            
-            {/* Tiêu đề "Workspaces" */}
-            <div className="px-4 py-3">
-              <div className="text-xs font-medium text-gray-500">Workspaces</div>
-            </div>
-
-            {/* Danh sách Workspaces */}
-            <div className="py-1">
-              {allWorkspaces.map((workspace) => (
-                <Menu.Item key={workspace.id}>
-                  {({ active }) => (
-                    <button
-                      className={`${
-                        active ? 'bg-gray-100' : ''
-                      } group flex items-center w-full px-4 py-2 text-sm text-gray-900`}
-                    >
-                      {/* Icon */}
-                      <div className={`w-8 h-8 rounded-md bg-blue-600 text-white flex items-center justify-center font-bold text-xs mr-3`}>
-                        {workspace.name.substring(0, 2).toUpperCase()}
-                      </div>
-                      {/* Text */}
-                      <div className="flex flex-col items-start flex-1">
-                        <div className="font-medium">{workspace.name}</div>
-                        <div className="text-xs text-gray-500">{workspace.boardCount} boards</div>
-                      </div>
-                      {workspace.id === currentWorkspaceId && (
-                        <div className="w-4 h-4 text-blue-600">
-                          <FiCheck />
-                        </div>
-                      )}
-                    </button>
-                  )}
-                </Menu.Item>
-              ))}
-            </div>
-
-            {/* Đường kẻ ngang */}
-            <div className="h-px bg-gray-200 mx-1"></div>
-
-            {/* Nút "Create" */}
-            <div className="p-1">
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    className={`${
-                      active ? 'bg-gray-100' : ''
-                    } group flex items-center w-full px-4 py-2 text-sm text-gray-700 rounded-md`}
-                  >
-                    <FiPlus className="w-4 h-4 mr-2" />
-                    Create workspace
-                  </button>
-                )}
-              </Menu.Item>
-            </div>
-            
-          </Menu.Items>
-        </Transition>
-      </Menu>
+        </div>
     )
 }

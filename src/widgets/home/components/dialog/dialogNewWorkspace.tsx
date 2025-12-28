@@ -13,19 +13,62 @@ import { FaPlus } from "react-icons/fa";
 import { Label } from "@/shared/ui/label/label";
 import { Input } from "@/shared/ui/input/input";
 import { useState } from "react";
+import { useProject } from "@/features/projects";
+import type { ApiError } from "@/shared/api/fetchFactory";
 
-export function DialogNewWorkspace() {
+interface DialogNewWorkspaceProps {
+  onWorkspaceCreated?: () => void;  // Callback để refresh danh sách
+}
+
+export function DialogNewWorkspace({ onWorkspaceCreated }: DialogNewWorkspaceProps) {
   const [workspaceName, setWorkspaceName] = useState("");
   const [description, setDescription] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const { createWorkspace } = useProject();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Create workspace", workspaceName, description);
-    setWorkspaceName("");
-    setDescription("");
+    
+    if (!workspaceName.trim()) {
+      alert("Workspace name is required");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const newWorkspace = await createWorkspace({
+        name: workspaceName.trim(),
+        description: description.trim() || undefined,
+      });
+
+      console.log("Workspace created:", newWorkspace);
+      
+      // Reset form
+      setWorkspaceName("");
+      setDescription("");
+      setIsOpen(false);
+
+      // Hiển thị thông báo thành công
+      alert(`Workspace "${newWorkspace.name}" created successfully!`);
+
+      // Gọi callback để refresh danh sách
+      if (onWorkspaceCreated) {
+        onWorkspaceCreated();
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      alert(apiError.message || "Failed to create workspace");
+      console.error("Error creating workspace:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {/*  Nút bấm để mở Dialog */}
       <DialogTrigger asChild>
         <Button>
@@ -55,6 +98,8 @@ export function DialogNewWorkspace() {
                 value={workspaceName}
                 onChange={(e) => setWorkspaceName(e.target.value)}
                 required
+                disabled={isLoading}
+                maxLength={255}
               />
             </div>
             {/* Input 2: Description */}
@@ -65,17 +110,23 @@ export function DialogNewWorkspace() {
                 placeholder="Enter workspace description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </div>
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" type="button" disabled={isLoading}>
+                Cancel
+              </Button>
             </DialogClose>
             {/* Nút Create */}
-            <Button disabled={!workspaceName} type="submit">
-              Create Workspace
+            <Button 
+              disabled={!workspaceName.trim() || isLoading} 
+              type="submit"
+            >
+              {isLoading ? "Creating..." : "Create Workspace"}
             </Button>
           </DialogFooter>
         </form>

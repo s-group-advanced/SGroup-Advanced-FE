@@ -2,6 +2,7 @@ import React from "react"
 import { Route, Routes } from "react-router-dom"
 import { AuthRedirect } from "./AuthRediect"
 import { AuthGuard } from "./AuthGuard"
+import { MainLayout } from "../layouts/MainLayout"  // ← Thêm dòng này
 
 const RegisterPage = React.lazy(() => import("@/pages/register/ui/RegisterPage").then(module => ({ default: module.RegisterPage })))
 const LoginPage = React.lazy(() => import("@/pages/login/ui/LoginPage").then(module => ({ default: module.LoginPage })))
@@ -37,13 +38,17 @@ export function AppRoutes() {
                         <InputOTPForm />
                     </React.Suspense>
             }></Route>
+            
             <Route path="/home" element={
                 <AuthGuard>
                     <React.Suspense fallback={<div>Loading...</div>}>
-                        <HomePage />
+                        <MainLayout>
+                            <HomePage />
+                        </MainLayout>
                     </React.Suspense>
                 </AuthGuard>
             }></Route>
+            
             <Route path="/forgot-password" element={
                 <React.Suspense fallback={<div>Loading...</div>}>
                     <InputEmail />
