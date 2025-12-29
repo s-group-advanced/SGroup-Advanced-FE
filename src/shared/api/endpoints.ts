@@ -23,6 +23,8 @@ export const API_ENDPOINTS = {
   BOARD: {
     GET_BOARD_OF_WORKSPACE: "/boards",
     ADD_BOARD_TO_WORKSPACE: "/boards",
+    DELETE_BOARD_FROM_WORKSPACE: "/boards/{boardId}/permanent",
+    EDIT_BOARD_IN_WORKSPACE: "/boards/{boardId}",
   },
 };
 

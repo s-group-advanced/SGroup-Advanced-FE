@@ -70,7 +70,11 @@ import {
         try {
             if (isEdit && selectedBoard) {
                 // Update board
-                await updateBoard(selectedBoard.id, boardTitle.trim(), description.trim());
+                await updateBoard({
+                    boardId: selectedBoard.id,
+                    name: boardTitle.trim(),
+                    description: description.trim() || undefined,
+                });
                 closeEditDialog();
             } else {
                 // Create new board
@@ -86,7 +90,6 @@ import {
                 });
   
                 console.log("Board created:", newBoard);
-                alert(`Board "${newBoard.name}" created successfully!`);
   
                 // Gọi callback để refresh danh sách board
                 if (onBoardCreated) {

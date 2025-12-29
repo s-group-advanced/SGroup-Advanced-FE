@@ -33,3 +33,13 @@ export interface AddBoardToWorkspaceResponse {
   is_closed: boolean;
   visibility: string;
 }
+
+export interface DeleteBoardRequest {
+  boardId: string;
+}
+
+export interface EditBoardRequest {
+  boardId: string;
+  name: string;
+  description?: string;
+}

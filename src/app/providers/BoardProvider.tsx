@@ -1,10 +1,12 @@
 import { useBoards, type AddBoardToWorkspaceRequest } from "@/features/boards";
+import type { DeleteBoardRequest, EditBoardRequest } from "@/features/boards/api/type";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 interface Board {
     id: string;
     name: string;
     description: string;
+    workspaceId: string;
     tasksCount?: number;
     membersCount?: number;
 }
@@ -15,9 +17,9 @@ interface BoardContextType {
     isEditDialogOpen: boolean;
     setBoards: React.Dispatch<React.SetStateAction<Board[]>>;
     selectBoard: (board: Board | null) => void;
-    editBoard: (boardId: string) => void;
-    deleteBoard: (boardId: string) => void;
-    updateBoard: (boardId: string, name: string, description: string) => void; 
+    openEditDialog: (boardId: string) => void;
+    deleteBoard: (request: DeleteBoardRequest) => Promise<void>;
+    updateBoard: (request: EditBoardRequest) => Promise<void>; 
     createBoard: (request: AddBoardToWorkspaceRequest) => Promise<void>;
     closeEditDialog: () => void;
     fetchBoardsByWorkspace: (workspaceId: string) => Promise<void>;
@@ -28,7 +30,7 @@ const BoardContext = createContext<BoardContextType | undefined>(undefined);
 export function BoardProvider({ children }: { children: ReactNode }) {
     const [boards, setBoards] = useState<Board[]>([]);
 
-    const { getAllBoardsOfWorkspace, addBoardToWorkspace } = useBoards();
+    const { getAllBoardsOfWorkspace, addBoardToWorkspace, deleteBoardToWorkspace, editBoardToWorkspace } = useBoards();
     
     // Lấy tất cả board của workspace
     const fetchBoardsByWorkspace = async (workspaceId: string) => {
@@ -47,7 +49,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         setSelectedBoard(board);
     };
 
-    const editBoard = (boardId: string) => {
+    const openEditDialog = async (boardId: string) => {
         const board = boards.find(b => b.id === boardId);
         if (board) {
             setSelectedBoard(board);
@@ -55,25 +57,44 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const deleteBoard = (boardId: string) => {
-        const board = boards.find(b => b.id === boardId);
-        if (board && confirm(`Delete "${board.name}"?`)) {
-            setBoards(prevBoards => prevBoards.filter(b => b.id !== boardId));
-            console.log('Deleted board:', boardId);
-        }
-    };
+    const deleteBoard = async (request: DeleteBoardRequest) => {
+        const board = boards.find(b => b.id === request.boardId);
 
-    const updateBoard = (boardId: string, name: string, description: string) => {
-        setBoards(prevBoards =>
-            prevBoards.map(board =>
-                board.id === boardId
-                    ? { ...board, name, description }
-                    : board
-            )
-        );
-        setIsEditDialogOpen(false);
-        setSelectedBoard(null);
-        console.log('Updated board:', boardId, name, description);
+        if (!board || !confirm(`Are you sure you want to permanently delete "${board.name}"?`)) {
+            return;
+        }
+
+        try {
+            await deleteBoardToWorkspace(request);
+            setBoards(prevBoards => prevBoards.filter(b => b.id !== request.boardId));
+
+        } catch (err) {
+            console.error(`Failed to delete board: ${err}`);
+            alert(`Failed to delete board: ${err}`);
+            throw err;
+        }
+    }
+
+    const updateBoard = async (request: EditBoardRequest) => {
+        const board = boards.find(b => b.id === request.boardId);
+
+        if (!board) {
+            console.error(`Board not found: ${request.boardId}`);
+            throw new Error(`Board not found: ${request.boardId}`);
+        }
+
+        try {
+            await editBoardToWorkspace(request);
+
+            setBoards(prevBoards => prevBoards.map(b => b.id === request.boardId ? { ...b, ...request } : b));
+            setIsEditDialogOpen(false);
+            setSelectedBoard(null);
+
+        } catch (err) {
+            console.error(`Failed to update board: ${err}`);
+            alert(`Failed to update board: ${err}`);
+            throw err;
+        }
     };
 
     const closeEditDialog = () => {
@@ -99,7 +120,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
                 isEditDialogOpen,
                 setBoards,
                 selectBoard,
-                editBoard,
+                openEditDialog,
                 deleteBoard,
                 updateBoard,    
                 createBoard,

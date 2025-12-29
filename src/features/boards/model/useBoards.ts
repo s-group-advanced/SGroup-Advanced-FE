@@ -4,6 +4,8 @@ import type {
   AddBoardToWorkspaceResponse,
   AddBoardToWorkspaceRequest,
   Board,
+  DeleteBoardRequest,
+  EditBoardRequest,
 } from "../api/type";
 
 export const useBoards = () => {
@@ -37,8 +39,36 @@ export const useBoards = () => {
     }
   };
 
+  // delete permanent board
+  const deleteBoardToWorkspace = async (
+    request: DeleteBoardRequest,
+  ): Promise<void> => {
+    try {
+      await boardApi.deleteBoard(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to delete board: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // edit board
+  const editBoardToWorkspace = async (
+    request: EditBoardRequest,
+  ): Promise<void> => {
+    try {
+      await boardApi.editBoard(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to edit board: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllBoardsOfWorkspace,
     addBoardToWorkspace,
+    deleteBoardToWorkspace,
+    editBoardToWorkspace,
   };
 };

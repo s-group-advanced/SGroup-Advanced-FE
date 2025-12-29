@@ -10,15 +10,22 @@ interface BoardOptionsMenuProps {
 }
 
 export function BoardOptionsMenu({ boardId }: BoardOptionsMenuProps) {
-    const { editBoard, deleteBoard } = useBoardContext();
+    const { openEditDialog, deleteBoard } = useBoardContext();
     const handleEditBoard = (e: React.MouseEvent) => {
         e.stopPropagation();
-        editBoard(boardId);
+        openEditDialog(boardId);
     }
-    const handleDeleteBoard = (e: React.MouseEvent) => {
+
+    const handleDeleteBoard = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        deleteBoard(boardId);
+        try {
+          await deleteBoard({ boardId });
+          
+        } catch (err) {
+          console.error(`Failed to delete board: ${err}`);
+        }
     }
+    
   return (
     <Menu as="div" className="relative ml-auto">
       <Menu.Button

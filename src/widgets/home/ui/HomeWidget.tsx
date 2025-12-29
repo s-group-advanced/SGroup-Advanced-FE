@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { BoardOptionsMenu } from "../components/BoardOptionsMenu";
 import { useBoards } from "@/features/boards";
 import { useBoardContext } from "@/app/providers/index"; 
+import type { Board } from "@/features/boards/api/type";
 
 interface WorkspaceBoards {
     [workspaceId: string]: {
@@ -22,7 +23,7 @@ interface WorkspaceBoards {
 export function HomeWidget() {
     const { getAllProjectsOfUser } = useProject();
     const { getAllBoardsOfWorkspace } = useBoards(); 
-    const { setBoards } = useBoardContext();  
+    const { setBoards, boards } = useBoardContext();  
     const [projects, setProjects] = useState<Project[]>([]);
     const [workspaceBoards, setWorkspaceBoards] = useState<WorkspaceBoards>({});
     const [isLoadingBoards, setIsLoadingBoards] = useState(false);
@@ -36,6 +37,20 @@ export function HomeWidget() {
             fetchAllWorkspaceBoards();
         }
     }, [projects]);
+
+    useEffect(() => {
+        if (boards.length > 0 && projects.length > 0) {
+            const newWorkspaceBoards: WorkspaceBoards = {};
+
+            projects.forEach(project => {
+                newWorkspaceBoards[project.id] = boards.filter(
+                    (board: any) => board.workspaceId === project.id
+                );
+            });
+
+            setWorkspaceBoards(newWorkspaceBoards);
+        }
+    }, [boards]);
 
     const handleGetAllProjectsOfUser = async () => {
         try {
@@ -58,8 +73,15 @@ export function HomeWidget() {
                 projects.map(async (project) => {
                     try {
                         const boards = await getAllBoardsOfWorkspace(project.id);
-                        boardsData[project.id] = boards as any;
-                        allBoards = [...allBoards, ...(boards as any)]; 
+
+                        // gán workspaceId vào boards
+                        const boardsWithWorkspaceId = boards.map((board: Board) => ({
+                            ...board,
+                            workspaceId: project.id as string
+                        }))
+                        
+                        boardsData[project.id] = boardsWithWorkspaceId;
+                        allBoards = [...allBoards, ...boardsWithWorkspaceId]; 
                     } catch (err) {
                         console.error(`Failed to fetch boards for workspace ${project.id}:`, err);
                         boardsData[project.id] = [];
