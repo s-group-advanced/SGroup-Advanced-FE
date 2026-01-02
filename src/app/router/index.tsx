@@ -2,7 +2,7 @@ import React from "react"
 import { Route, Routes } from "react-router-dom"
 import { AuthRedirect } from "./AuthRediect"
 import { AuthGuard } from "./AuthGuard"
-import { MainLayout } from "../layouts/MainLayout"  // ← Thêm dòng này
+import { MainLayout } from "../layouts/MainLayout" 
 
 const RegisterPage = React.lazy(() => import("@/pages/register/ui/RegisterPage").then(module => ({ default: module.RegisterPage })))
 const LoginPage = React.lazy(() => import("@/pages/login/ui/LoginPage").then(module => ({ default: module.LoginPage })))
@@ -11,17 +11,20 @@ const InputOTPForm = React.lazy(() => import("@/features/auth/login/ui/FormInput
 const InputEmail = React.lazy(() => import("@/pages/changePassword/ui/inputEmail").then(module => ({ default: module.InputEmail })))
 const InputOTPChangePassword = React.lazy(() => import("@/pages/changePassword/ui/inputOTP").then(module => ({ default: module.InputOTPChangePassword })))
 const ChangePassword = React.lazy(() => import("@/pages/changePassword/ui/changePassword").then(module => ({ default: module.ChangePassword })))
+const BoardPage = React.lazy(() => import("@/pages/board/ui/BoardPage").then(module => ({ default: module.BoardPage })))
 
 export function AppRoutes() {
     return (
         <Routes>
+            {/* Routes KHÔNG CẦN sidebar */}
             <Route path="/" element={
                 <AuthRedirect>
-                <React.Suspense fallback>
+                    <React.Suspense fallback>
                         <LoginPage />
-                </React.Suspense>
-                    </AuthRedirect>
+                    </React.Suspense>
+                </AuthRedirect>
             }></Route>
+            
             <Route path="/register" element={
                 <AuthRedirect>
                     <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">
@@ -29,24 +32,15 @@ export function AppRoutes() {
                             <h1 className="text-6xl font-bold">Loading...</h1>
                         </div>
                     </div>}>
-                    <RegisterPage />
+                        <RegisterPage />
                     </React.Suspense>
                 </AuthRedirect>
             }></Route>
-            <Route path="/input-otp" element={
-                    <React.Suspense fallback={<div>Loading...</div>}>
-                        <InputOTPForm />
-                    </React.Suspense>
-            }></Route>
             
-            <Route path="/home" element={
-                <AuthGuard>
-                    <React.Suspense fallback={<div>Loading...</div>}>
-                        <MainLayout>
-                            <HomePage />
-                        </MainLayout>
-                    </React.Suspense>
-                </AuthGuard>
+            <Route path="/input-otp" element={
+                <React.Suspense fallback={<div>Loading...</div>}>
+                    <InputOTPForm />
+                </React.Suspense>
             }></Route>
             
             <Route path="/forgot-password" element={
@@ -54,22 +48,45 @@ export function AppRoutes() {
                     <InputEmail />
                 </React.Suspense>
             }></Route>
+            
             <Route path="/verify-otp" element={
                 <React.Suspense fallback={<div>Loading...</div>}>
                     <InputOTPChangePassword />
                 </React.Suspense>
             }></Route>
+            
             <Route path="/change-password" element={
                 <React.Suspense fallback={<div>Loading...</div>}>
                     <ChangePassword />
                 </React.Suspense>
             }></Route>
+
+            {/* Routes CẦN sidebar - Wrap trong MainLayout */}
+            <Route element={
+                <AuthGuard>
+                    <MainLayout />
+                </AuthGuard>
+            }>
+                {/* Nested routes - sẽ render vào <Outlet> */}
+                <Route path="/home" element={
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <HomePage />
+                    </React.Suspense>
+                } />
+                
+                <Route path="/board/:boardId" element={
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <BoardPage />
+                    </React.Suspense>
+                } />
+            </Route>
+
             {/* 404 */}
             <Route path="*" element={
-                 <div className="min-h-screen flex items-center justify-center">
-                 <div className="text-center">
-                   <h1 className="text-6xl font-bold">404</h1>
-                   <p className="text-xl mt-4">Page Not Found</p>
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <h1 className="text-6xl font-bold">404</h1>
+                        <p className="text-xl mt-4">Page Not Found</p>
                     </div>
                 </div>
             }></Route>

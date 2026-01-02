@@ -25,6 +25,13 @@ export const API_ENDPOINTS = {
     ADD_BOARD_TO_WORKSPACE: "/boards",
     DELETE_BOARD_FROM_WORKSPACE: "/boards/{boardId}/permanent",
     EDIT_BOARD_IN_WORKSPACE: "/boards/{boardId}",
+    GET_BOARD_BY_ID: "/boards/{boardId}",
+  },
+  CARD: {
+    GET_ALL_CARDS_OF_BOARD: "/boards/{boardId}/cards",
+  },
+  LIST: {
+    GET_ALL_LISTS_OF_BOARD: "/boards/{boardId}/lists",
   },
 };
 
@@ -32,3 +39,5 @@ export const AuthEndpoint = API_ENDPOINTS.AUTH;
 export const UserEndpoint = API_ENDPOINTS.USER;
 export const ProjectEndpoint = API_ENDPOINTS.PROJECT;
 export const BoardEndpoint = API_ENDPOINTS.BOARD;
+export const CardEndpoint = API_ENDPOINTS.CARD;
+export const ListEndpoint = API_ENDPOINTS.LIST;

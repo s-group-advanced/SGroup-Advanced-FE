@@ -9,6 +9,7 @@ import { BoardOptionsMenu } from "../components/BoardOptionsMenu";
 import { useBoards } from "@/features/boards";
 import { useBoardContext } from "@/app/providers/index"; 
 import type { Board } from "@/features/boards/api/type";
+import { Link } from "react-router-dom";
 
 interface WorkspaceBoards {
     [workspaceId: string]: {
@@ -160,9 +161,10 @@ export function HomeWidget() {
                                     </div>
                                 ) : (
                                     projectBoards.map((board) => (
-                                        <div 
+                                        <Link to={`/board/${board.id}`}
                                             key={board.id}
-                                            className="group flex flex-col gap-2 border border-gray-200 shadow-sm rounded-lg p-5 w-[calc(25%-12px)] hover:shadow-md transition-all duration-300 cursor-pointer"
+                                            state={{ board }}
+                                            className="group flex flex-col gap-2 border border-gray-200 shadow-sm rounded-lg p-5 w-[calc(25%-12px)] hover:shadow-md transition-all duration-300 cursor-pointer no-underline"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <svg 
@@ -184,7 +186,7 @@ export function HomeWidget() {
                                                 <div className="text-md font-semibold text-gray-900">{board.name}</div>
                                                 <BoardOptionsMenu boardId={board.id} />
                                             </div>
-                                            <div className="text-sm text-gray-500">{board.description}</div>
+                                            <div className="text-sm text-gray-500 min-h-[2.5rem]">{board.description}</div>
                                             <div className="flex items-center justify-between mt-2">
                                                 <div className="text-sm text-gray-500">
                                                     {board.tasksCount || 0} {board.tasksCount === 1 ? 'task' : 'tasks'}
@@ -194,7 +196,7 @@ export function HomeWidget() {
                                                     <span className="text-sm">{board.membersCount || 0}</span>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))
                                 )}
                             </div>

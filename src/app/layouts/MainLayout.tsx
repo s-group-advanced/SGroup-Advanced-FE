@@ -1,16 +1,12 @@
 import { SideBar } from "@/widgets/SideBar/index";
-import type { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 
-interface MainLayoutProps {
-    children: ReactNode;
-}
-
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout() {
     return (
         <div className="flex">
             <SideBar />
             <main className="flex-1">
-                {children}
+                <Outlet />
             </main>
         </div>
     );

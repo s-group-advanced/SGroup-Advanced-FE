@@ -5,4 +5,6 @@ export type {
   AddBoardToWorkspaceResponse,
   DeleteBoardRequest,
   EditBoardRequest,
+  GetBoardByIdRequest,
+  GetBoardByIdResponse,
 } from "./api/type";

@@ -13,13 +13,16 @@ export function BoardOptionsMenu({ boardId }: BoardOptionsMenuProps) {
     const { openEditDialog, deleteBoard } = useBoardContext();
     const handleEditBoard = (e: React.MouseEvent) => {
         e.stopPropagation();
+        e.preventDefault();
         openEditDialog(boardId);
     }
 
     const handleDeleteBoard = async (e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-          await deleteBoard({ boardId });
+            e.preventDefault();
+            e.stopPropagation();
+            await deleteBoard({ boardId });
           
         } catch (err) {
           console.error(`Failed to delete board: ${err}`);
@@ -30,7 +33,10 @@ export function BoardOptionsMenu({ boardId }: BoardOptionsMenuProps) {
     <Menu as="div" className="relative ml-auto">
       <Menu.Button
         className="hover:bg-gray-100 rounded-lg p-2 cursor-pointer transition-all duration-300 w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-100"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        }}
       >
         <FaEllipsisH className="text-gray-500" />
       </Menu.Button>

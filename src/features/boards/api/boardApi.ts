@@ -5,6 +5,8 @@ import type {
   Board,
   DeleteBoardRequest,
   EditBoardRequest,
+  GetBoardByIdRequest,
+  GetBoardByIdResponse,
 } from "./type";
 import { fetchFactory } from "@/shared/api";
 
@@ -38,6 +40,14 @@ export const boardApi = {
     return fetchFactory.patch<void>(
       BoardEndpoint.EDIT_BOARD_IN_WORKSPACE.replace("{boardId}", boardId),
       body,
+    );
+  },
+
+  getBoardById: (
+    request: GetBoardByIdRequest,
+  ): Promise<GetBoardByIdResponse> => {
+    return fetchFactory.get<GetBoardByIdResponse>(
+      BoardEndpoint.GET_BOARD_BY_ID.replace("{boardId}", request.boardId),
     );
   },
 };

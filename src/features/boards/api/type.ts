@@ -43,3 +43,16 @@ export interface EditBoardRequest {
   name: string;
   description?: string;
 }
+
+export interface GetBoardByIdRequest {
+  boardId: string;
+}
+
+export interface GetBoardByIdResponse {
+  id: string;
+  name: string;
+  send_link_token: string;
+  created_by: User;
+  created_at: string;
+  updated_at: string;
+}

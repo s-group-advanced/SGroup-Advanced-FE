@@ -6,6 +6,8 @@ import type {
   Board,
   DeleteBoardRequest,
   EditBoardRequest,
+  GetBoardByIdRequest,
+  GetBoardByIdResponse,
 } from "../api/type";
 
 export const useBoards = () => {
@@ -65,10 +67,26 @@ export const useBoards = () => {
     }
   };
 
+  // get board by id
+  const getBoardById = async (
+    request: GetBoardByIdRequest,
+  ): Promise<GetBoardByIdResponse> => {
+    try {
+      const data = await boardApi.getBoardById(request);
+      if (!data) throw new Error("Failed to get board by id");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to get board by id: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllBoardsOfWorkspace,
     addBoardToWorkspace,
     deleteBoardToWorkspace,
     editBoardToWorkspace,
+    getBoardById,
   };
 };

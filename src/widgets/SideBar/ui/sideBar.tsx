@@ -54,7 +54,7 @@ export function SideBar() {
     }
 
     return (
-        <div className="w-68 h-screen bg-gray-50 border-r border-gray-200 flex flex-col">
+        <div className="w-68 h-screen bg-gray-50 border-r border-gray-200 flex flex-col sticky top-0 left-0">
             <InfoWorkspace />
             
            {/* Navigation */}
