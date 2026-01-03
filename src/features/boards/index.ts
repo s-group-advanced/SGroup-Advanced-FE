@@ -7,4 +7,10 @@ export type {
   EditBoardRequest,
   GetBoardByIdRequest,
   GetBoardByIdResponse,
+  GetAllMemberOfWorkspaceButNotInBoardRequest,
+  GetAllMemberOfWorkspaceButNotInBoardResponse,
+  InviteUserToBoardRequest,
+  InviteUserToBoardResponse,
+  AcceptInvitationToBoardRequest,
+  AcceptInvitationToBoardResponse,
 } from "./api/type";

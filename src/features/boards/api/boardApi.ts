@@ -1,12 +1,18 @@
 import { BoardEndpoint } from "@/shared/api/endpoints";
 import type {
+  AcceptInvitationToBoardRequest,
+  AcceptInvitationToBoardResponse,
   AddBoardToWorkspaceRequest,
   AddBoardToWorkspaceResponse,
   Board,
   DeleteBoardRequest,
   EditBoardRequest,
+  GetAllMemberOfWorkspaceButNotInBoardRequest,
+  GetAllMemberOfWorkspaceButNotInBoardResponse,
   GetBoardByIdRequest,
   GetBoardByIdResponse,
+  InviteUserToBoardRequest,
+  InviteUserToBoardResponse,
 } from "./type";
 import { fetchFactory } from "@/shared/api";
 
@@ -48,6 +54,43 @@ export const boardApi = {
   ): Promise<GetBoardByIdResponse> => {
     return fetchFactory.get<GetBoardByIdResponse>(
       BoardEndpoint.GET_BOARD_BY_ID.replace("{boardId}", request.boardId),
+    );
+  },
+
+  // get all member of workspace but not in board
+  getAllMemberOfWorkspaceButNotInBoard: (
+    request: GetAllMemberOfWorkspaceButNotInBoardRequest,
+  ): Promise<GetAllMemberOfWorkspaceButNotInBoardResponse> => {
+    return fetchFactory.get<GetAllMemberOfWorkspaceButNotInBoardResponse>(
+      BoardEndpoint.GET_ALL_MEMBER_OF_WORKSPACE_BUT_NOT_IN_BOARD.replace(
+        "{boardId}",
+        request.boardId,
+      ),
+    );
+  },
+
+  // invite user to board
+  inviteUserToBoard: (
+    request: InviteUserToBoardRequest,
+  ): Promise<InviteUserToBoardResponse> => {
+    return fetchFactory.post<InviteUserToBoardResponse>(
+      BoardEndpoint.INVITE_USER_TO_BOARD.replace("{boardId}", request.boardId),
+      {
+        invited_email: request.invited_email,
+      },
+    );
+  },
+
+  // accept invitation to board
+  acceptInvitationToBoard: (
+    request: AcceptInvitationToBoardRequest,
+  ): Promise<AcceptInvitationToBoardResponse> => {
+    return fetchFactory.post<AcceptInvitationToBoardResponse>(
+      BoardEndpoint.ACCEPT_INVITATION_TO_BOARD.replace(
+        "{token}",
+        request.token,
+      ),
+      {},
     );
   },
 };

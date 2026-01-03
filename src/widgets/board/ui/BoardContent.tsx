@@ -1,6 +1,6 @@
 import { useListContext } from "@/app/providers/index";
 import { BoardList } from "../components/List/BoardList";
-import { AddCardButton } from "../components/List/AddCardButton";
+import { AddListButton } from "../components/List/AddListButton";
 
 export function BoardContent() {
     const { list, isLoading } = useListContext();
@@ -19,7 +19,7 @@ export function BoardContent() {
                     <BoardList key={list.id} list={list} />
                 ))}
 
-                <AddCardButton />
+                <AddListButton />
             </div>
         </div>
     )

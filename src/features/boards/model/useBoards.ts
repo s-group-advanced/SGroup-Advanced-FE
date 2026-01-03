@@ -8,6 +8,12 @@ import type {
   EditBoardRequest,
   GetBoardByIdRequest,
   GetBoardByIdResponse,
+  GetAllMemberOfWorkspaceButNotInBoardRequest,
+  GetAllMemberOfWorkspaceButNotInBoardResponse,
+  InviteUserToBoardRequest,
+  InviteUserToBoardResponse,
+  AcceptInvitationToBoardRequest,
+  AcceptInvitationToBoardResponse,
 } from "../api/type";
 
 export const useBoards = () => {
@@ -82,11 +88,66 @@ export const useBoards = () => {
     }
   };
 
+  // get all member of workspace but not in board
+  const getAllMemberOfWorkspaceButNotInBoard = async (
+    request: GetAllMemberOfWorkspaceButNotInBoardRequest,
+  ): Promise<GetAllMemberOfWorkspaceButNotInBoardResponse> => {
+    try {
+      const data = await boardApi.getAllMemberOfWorkspaceButNotInBoard(request);
+      if (!data)
+        throw new Error(
+          "Failed to get all member of workspace but not in board",
+        );
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to get all member of workspace but not in board: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // invite user to board
+  const inviteUserToBoard = async (
+    request: InviteUserToBoardRequest,
+  ): Promise<InviteUserToBoardResponse> => {
+    try {
+      const data = await boardApi.inviteUserToBoard(request);
+      if (!data) throw new Error("Failed to invite user to board");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to invite user to board: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // accept invitation to board
+  const acceptInvitationToBoard = async (
+    request: AcceptInvitationToBoardRequest,
+  ): Promise<AcceptInvitationToBoardResponse> => {
+    try {
+      const data = await boardApi.acceptInvitationToBoard(request);
+      if (!data) throw new Error("Failed to accept invitation to board");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to accept invitation to board: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
   return {
     getAllBoardsOfWorkspace,
     addBoardToWorkspace,
     deleteBoardToWorkspace,
     editBoardToWorkspace,
     getBoardById,
+    getAllMemberOfWorkspaceButNotInBoard,
+    inviteUserToBoard,
+    acceptInvitationToBoard,
   };
 };

@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom"
 import { AuthRedirect } from "./AuthRediect"
 import { AuthGuard } from "./AuthGuard"
 import { MainLayout } from "../layouts/MainLayout" 
+import { AcceptInvitationPage } from "@/pages/invitation/ui/AcceptInvitationPage"
 
 const RegisterPage = React.lazy(() => import("@/pages/register/ui/RegisterPage").then(module => ({ default: module.RegisterPage })))
 const LoginPage = React.lazy(() => import("@/pages/login/ui/LoginPage").then(module => ({ default: module.LoginPage })))
@@ -80,6 +81,14 @@ export function AppRoutes() {
                     </React.Suspense>
                 } />
             </Route>
+
+            <Route path="/boards/invitations/:token/accept" element={
+                <AuthGuard>
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <AcceptInvitationPage />
+                    </React.Suspense>
+                    </AuthGuard>
+            }></Route>
 
             {/* 404 */}
             <Route path="*" element={

@@ -1,15 +1,32 @@
 import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
+import { useListContext } from "@/app/providers/ListProvider";
+import { useParams } from "react-router-dom";
+import type { List } from "@/features/lists/api/type";
 
-export function AddCardButton() {
+export function AddListButton() {
     const [isAdding, setIsAdding] = useState(false);
     const [title, setTitle] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleAdd = () => {
-        if (title.trim()) {
-            console.log("Add card:", title);
+    const { fetchCreateList, addListToState } = useListContext();
+    const { boardId } = useParams<{ boardId: string }>();
+
+    const handleAddList = async () => {
+        if (!title.trim() || isSubmitting) return;
+        setIsSubmitting(true);
+
+        try {
+            const newList = await fetchCreateList({ title, name: title, board_id: boardId as string });
+            if (!newList) throw new Error("Failed to create list");
             setTitle("");
             setIsAdding(false);
+            addListToState(newList as unknown as List);
+        } catch (err) {
+            console.error(`Failed to create list: ${err}`);
+            throw err;
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -29,13 +46,13 @@ export function AddCardButton() {
                     className="w-full p-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-shadow mb-2 mt-2"
                     autoFocus
                     onKeyDown={(e) => {
-                        if (e.key === "Enter") handleAdd();
+                        if (e.key === "Enter") handleAddList();
                         if (e.key === "Escape") handleCancel();
                     }}
                 />
                 <div className="flex items-center gap-2 mt-2">
                     <button
-                        onClick={handleAdd}
+                        onClick={handleAddList}
                         disabled={!title.trim()}
                         className="px-3 py-1.5 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                     >

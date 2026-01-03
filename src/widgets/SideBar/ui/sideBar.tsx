@@ -1,57 +1,39 @@
 import { UserProfileMenu, InfoWorkspace } from "@/widgets/SideBar/components/index";
 import { Link } from "react-router-dom";
 import { FiFolder } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useProject, type Project } from "@/features/projects";
-import { useBoards } from "@/features/boards";
-import type { ApiError } from "@/features/auth/login/api/type";
+import { useBoardContext } from "@/app/providers"; 
 
 interface WorkspaceWithBoardCount extends Project {
     boardCount: number;
 }
 
 export function SideBar() {
-    const { getAllProjectsOfUser } = useProject();
-    const { getAllBoardsOfWorkspace } = useBoards(); 
-    const [workspaces, setWorkspaces] = useState<WorkspaceWithBoardCount[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const { getAllProjectsOfUser, projects } = useProject(); 
+    const { boards, fetchBoardsByWorkspace } = useBoardContext();  
 
+    // Fetch projects khi mount
     useEffect(() => {
-        fetchWorkspaces();
+        getAllProjectsOfUser();
     }, []);
 
-    const fetchWorkspaces = async () => {
-        setIsLoading(true);
-        try {
-            const projects = await getAllProjectsOfUser();
-            
-            const workspacesWithCount = await Promise.all(
-                projects.map(async (project) => {
-                    try {
-                        const boards = await getAllBoardsOfWorkspace(project.id);
-                        return {
-                            ...project,
-                            boardCount: boards.length
-                        };
-                    } catch (err) {
-                        console.error(`Failed to fetch boards for ${project.name}:`, err);
-                        return {
-                            ...project,
-                            boardCount: 0
-                        };
-                    }
-                })
-            );
-            
-            setWorkspaces(workspacesWithCount);
-        } catch (err) {
-            const apiError = err as ApiError;
-            console.error(`Failed to fetch workspaces: ${apiError.message}`);
-            setWorkspaces([]);
-        } finally {
-            setIsLoading(false);
+    // Fetch boards cho mỗi workspace
+    useEffect(() => {
+        if (projects.length > 0) {
+            projects.forEach(project => {
+                fetchBoardsByWorkspace(project.id);
+            });
         }
-    }
+    }, [projects]);
+
+    // Compute workspaces với board count từ boards Context
+    const workspacesWithCount = useMemo<WorkspaceWithBoardCount[]>(() => {
+        return projects.map(project => ({
+            ...project,
+            boardCount: boards.filter(b => b.workspaceId === project.id).length
+        }));
+    }, [projects, boards]);  // Re-compute khi boards thay đổi
 
     return (
         <div className="w-68 h-screen bg-gray-50 border-r border-gray-200 flex flex-col sticky top-0 left-0">
@@ -76,12 +58,10 @@ export function SideBar() {
 
                     {/* Workspaces List */}
                     <div className="mb-1">
-                        {isLoading ? (
-                            <div className="text-xs text-gray-400 px-2 py-1">Loading...</div>
-                        ) : workspaces.length === 0 ? (
+                        {projects.length === 0 ? (
                             <div className="text-xs text-gray-400 px-2 py-1">No workspaces</div>
                         ) : (
-                            workspaces.map((workspace) => (
+                            workspacesWithCount.map((workspace) => (
                                 <Link
                                     key={workspace.id}
                                     to="/home"
@@ -90,7 +70,7 @@ export function SideBar() {
                                     <FiFolder className="w-4 h-4" />
                                     <span className="truncate flex-1">{workspace.name}</span>
                                     <span className="text-xs text-gray-500">
-                                        {workspace.boardCount}
+                                        {workspace.boardCount} 
                                     </span>
                                 </Link>
                             ))

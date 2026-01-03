@@ -56,3 +56,39 @@ export interface GetBoardByIdResponse {
   created_at: string;
   updated_at: string;
 }
+
+export interface GetAllMemberOfWorkspaceButNotInBoardRequest {
+  boardId: string;
+}
+
+export interface GetAllMemberOfWorkspaceButNotInBoardResponse {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url: string;
+  roles: string[];
+  permissions: string[];
+}
+
+export interface InviteUserToBoardRequest {
+  boardId: string;
+  invited_email?: string;
+  invited_user_id?: string;
+}
+
+export interface InviteUserToBoardResponse {
+  token: string;
+  link: string;
+  expires_at: string;
+}
+
+export interface AcceptInvitationToBoardRequest {
+  token: string;
+}
+
+export interface AcceptInvitationToBoardResponse {
+  id: string;
+  name: string;
+  description: string;
+  workspaceId: string;
+}
