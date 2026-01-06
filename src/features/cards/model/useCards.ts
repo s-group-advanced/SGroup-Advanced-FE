@@ -1,11 +1,18 @@
 import type { ApiError } from "@/shared/api/fetchFactory";
 import type {
+  AssignedUserToCardRequest,
+  AssignedUserToCardResponse,
   CreateCardRequest,
   CreateCardResponse,
+  CreateCommentOnCardRequest,
+  CreateCommentOnCardResponse,
   DeleteCardRequest,
   DeleteCardResponse,
   GetAllCardsOfBoardRequest,
   GetAllCardsOfBoardResponse,
+  GetAllCommentsOfCardRequest,
+  GetAllCommentsOfCardResponse,
+  UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
 } from "../api/type";
@@ -72,10 +79,72 @@ export const useCards = () => {
     }
   };
 
+  // assign user to card
+  const assignUserToCard = async (
+    request: AssignedUserToCardRequest,
+  ): Promise<AssignedUserToCardResponse> => {
+    try {
+      const data = await cardApi.assignUserToCard(request);
+      if (!data) throw new Error("Failed to assign user to card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to assign user to card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // unassign user from card
+  const unassignUserFromCard = async (
+    request: UnassignUserFromCardRequest,
+  ): Promise<void> => {
+    try {
+      await cardApi.unassignUserFromCard(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to unassign user from card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // create comment on card
+  const createCommentOnCard = async (
+    request: CreateCommentOnCardRequest,
+  ): Promise<CreateCommentOnCardResponse> => {
+    try {
+      const data = await cardApi.createCommentOnCard(request);
+      if (!data) throw new Error("Failed to create comment on card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to create comment on card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // get all comments of card
+  const getAllCommentsOfCard = async (
+    request: GetAllCommentsOfCardRequest,
+  ): Promise<GetAllCommentsOfCardResponse> => {
+    try {
+      const data = await cardApi.getAllCommentsOfCard(request);
+      if (!data) throw new Error("Failed to get all comments of card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to get all comments of card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllCardsOfBoard,
     createCard,
     deleteCard,
     updateCard,
+    assignUserToCard,
+    unassignUserFromCard,
+    createCommentOnCard,
+    getAllCommentsOfCard,
   };
 };

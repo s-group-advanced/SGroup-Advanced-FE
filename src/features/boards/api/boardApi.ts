@@ -7,6 +7,8 @@ import type {
   Board,
   DeleteBoardRequest,
   EditBoardRequest,
+  GetAllMemberOfBoardRequest,
+  GetAllMemberOfBoardResponse,
   GetAllMemberOfWorkspaceButNotInBoardRequest,
   GetAllMemberOfWorkspaceButNotInBoardResponse,
   GetBoardByIdRequest,
@@ -91,6 +93,18 @@ export const boardApi = {
         request.token,
       ),
       {},
+    );
+  },
+
+  // get all member of board
+  getAllMemberOfBoard: (
+    request: GetAllMemberOfBoardRequest,
+  ): Promise<GetAllMemberOfBoardResponse> => {
+    return fetchFactory.get<GetAllMemberOfBoardResponse>(
+      BoardEndpoint.GET_ALL_MEMBER_OF_BOARD.replace(
+        "{boardId}",
+        request.boardId,
+      ),
     );
   },
 };

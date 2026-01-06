@@ -1,6 +1,7 @@
 import type { Card } from "@/features/cards/index";
 import { useState } from "react";
 import { DialogCardToList } from "../Dialog/DialogCardToList";
+import { CardMemberAvatars } from "./CardMemberAvatars";
 
 interface CardInListProps {
     card: Card;
@@ -18,14 +19,17 @@ export function CardInList({ card, listName }: CardInListProps) {
                 e.stopPropagation();
                 setIsDialogOpen(true);
         }}>
-            <h4 className="text-sm font-medium text-gray-900 mb-3">
+            <h4 className="text-sm font-medium text-gray-900 mb-3 mt-6">
                 {card.title}
             </h4>
             {card.description && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 mb-3">
                     {card.description}
                 </p>
             )}
+            <div className="flex items-center gap-2 mb-3">
+                <CardMemberAvatars card={card} maxDisplay={2} />
+            </div>
         </div>
 
         <DialogCardToList 

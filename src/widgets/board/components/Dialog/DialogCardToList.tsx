@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { FiX, FiTag, FiCheckSquare, FiUserPlus, FiTrash2 } from "react-icons/fi";
+import { FiX, FiUserPlus, FiTrash2 } from "react-icons/fi";
 import type { Card } from "@/features/cards/index";
 import { useCardDetailContext } from "@/app/providers/CardDetailProvider";
-import { useUser } from "@/app/providers/UserProvider";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
+import { useBoardDetail } from "@/app/providers/BoardDetailProvider";
+import { CardComments } from "../Card/CardComments";
+import { AddTagToCard } from "./AddTagToCard";
+import { useLabels } from "@/features/labels/index";
+import { TAG_COLORS } from "@/shared/constants/tagColors";
+import { DialogChecklist } from "./DialogChecklist";
 
 interface DialogCardToListProps {
     isOpen?: boolean;
@@ -18,29 +23,118 @@ interface DialogCardToListProps {
 export function DialogCardToList({ isOpen, onOpenChange, card, listName }: DialogCardToListProps) {
     const [title, setTitle] = useState(card.title);
     const [description, setDescription] = useState(card.description);
-    const [comment, setComment] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
-    const { user } = useUser();
+    const { membersOfBoard } = useBoardDetail();
 
-    const { fetchDeleteCard, removeCardFromState, fetchUpdateCard, updateCardInState } = useCardDetailContext();
+    const { getLabelsOfCard } = useLabels();
+    const [cardLabels, setCardLabels] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (card.id) {
+            fetchCardLabels();
+        }
+    }, [card.id]);
+
+    const fetchCardLabels = async () => {
+        try {
+            const data = await getLabelsOfCard({ cardId: card.id });
+            const labelsData = Array.isArray(data) ? data : [data];
+            setCardLabels(labelsData.filter(Boolean));
+        } catch (err) {
+            console.error(`Failed to fetch card labels: ${err}`);
+        }
+    }
+    const { 
+            fetchDeleteCard, 
+            removeCardFromState, 
+            fetchUpdateCard, 
+            updateCardInState, 
+            handleAssignUserToCard, 
+            handleUnassignUserFromCard 
+        } = useCardDetailContext();
 
     console.log("isUpdating", isUpdating);
+
+    const assignedUsers = useMemo(() => {
+        if (!card.cardMembers || card.cardMembers.length === 0) return [];
+
+        return card.cardMembers
+            .map(cardMember => {
+                const memberInfo = membersOfBoard.find(m => m.user_id === cardMember.user_id);
+
+                if (!memberInfo) return null;
+
+                return {
+                    user_id: cardMember.user_id,
+                    name: memberInfo.user.name,
+                    email: memberInfo.user.email,
+                    avatar_url: memberInfo.user.avatar_url,
+                    assigned_at: cardMember.assigned_at,
+                };
+            })
+            .filter(Boolean) as any[];
+    }, [card.cardMembers, membersOfBoard]);
+
+    const availableUsers = useMemo(() => {
+        const assignedUserIds = new Set(assignedUsers.map(u => u.user_id));
+        return membersOfBoard.filter(user => !assignedUserIds.has(user.user_id));
+    }, [membersOfBoard, assignedUsers]);
     
     useEffect(() => {
         setTitle(card.title);
         setDescription(card.description);
     }, [card.title, card.description]);
 
-    // Mock data
-    const assignedUsers = [
-        { id: "1", name: "John Doe", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John" }
-    ];
+    const handleAssignUserClick = async (userId: string) => {
+        try {
+            const newCardMember = {
+                card_id: card.id,
+                user_id: userId,
+                assigned_at: new Date().toISOString(),
+            };
+            
+            updateCardInState(card.id, { 
+                cardMembers: [
+                    ...(card.cardMembers || []).filter(m => m.user_id !== userId),
+                    newCardMember
+                ]
+            });
+            const response = await handleAssignUserToCard({ cardId: card.id, user_id: userId });
 
-    const availableUsers = [
-        { id: "2", name: "Jane Smith", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane" },
-        { id: "3", name: "Bob Johnson", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bob" }
-    ];
+            if (response.assigned_at) {
+                const updatedCardMember = {
+                    card_id: card.id,
+                    user_id: userId,
+                    assigned_at: response.assigned_at,
+                };
+                
+                updateCardInState(card.id, { 
+                    cardMembers: [
+                        ...(card.cardMembers || []).filter(m => m.user_id !== userId),
+                        updatedCardMember
+                    ]
+                });
+            }
+            
+        } catch (err) {
+            console.error("Failed to assign user: ", err);
+            throw err;
+        }
+    }
+
+    const handleUnassignUserClick = async (userId: string) => {
+        try {
+            const previousCardMembers = card.cardMembers || [];
+
+            updateCardInState(card.id, { cardMembers: previousCardMembers.filter(u => u.user_id !== userId) });
+
+            await handleUnassignUserFromCard({ cardId: card.id, userId });
+        } catch (err) {
+            console.error("Failed to unassign user: ", err);
+            throw err;
+        }
+    }
 
     const handleTitleBlur = async () => {
         const trimmedTitle = title.trim();
@@ -95,6 +189,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
             setIsDeleting(true);
             await fetchDeleteCard({ cardId: card.id });
             removeCardFromState(card.id);
+            setCardLabels([]);
             onOpenChange?.(false);
             setIsDeleting(false);
         }
@@ -118,14 +213,16 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                 <div className="space-y-6 py-4">
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <button className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-semibold shadow-md border-gray-300">
+                        {/* <button className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-semibold shadow-md border-gray-300">
                             <FiTag className="w-4 h-4" />
                             Add tags
-                        </button>
-                        <button className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-semibold shadow-md border-gray-300">
-                            <FiCheckSquare className="w-4 h-4" />
-                            Add todo
-                        </button>
+                        </button> */}
+                        <AddTagToCard
+                            cardId={card.id}
+                            boardId={card.board_id}
+                            onTagAdded={fetchCardLabels}
+                        />
+                        <DialogChecklist card={card} />
                         <button className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-semibold shadow-md border-gray-300">
                             <FiUserPlus className="w-4 h-4" />
                             Add member
@@ -160,24 +257,49 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                         />
                     </div>
 
+                    {/* Labels */}
+                    {cardLabels && cardLabels.length > 0 && (
+                        <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-900">
+                            Tags
+                        </label>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {cardLabels.map((cardLabel) => {
+                                const colorConfig = TAG_COLORS.find(c => c.hex === cardLabel.color);
+                                return (
+                                    <div
+                                        key={cardLabel.id}
+                                        className={`
+                                            px-3 py-1 rounded-full text-white text-xs font-medium
+                                            ${colorConfig?.bgClass || 'bg-gray-500'}
+                                        `}
+                                    >
+                                        {cardLabel.name}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    )}
+
                     {/* Assigned Users */}
                     <div className="space-y-3">
                         <label className="text-sm font-semibold text-gray-900">
                             Assigned Users
                         </label>
                         <div className="flex items-center gap-2 flex-wrap">
-                            {assignedUsers.map((user) => (
+                            {assignedUsers.map((assignedUser) => (
                                 <div
-                                    key={user.id}
+                                    key={assignedUser.user_id}
                                     className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full"
                                 >
                                     <img
-                                        src={user.avatar}
-                                        alt={user.name}
+                                        src={assignedUser.avatar_url ?? ""}
+                                        alt={assignedUser.name ?? ""}
                                         className="w-6 h-6 rounded-full"
                                     />
-                                    <span className="text-sm">{user.name}</span>
-                                    <button className="ml-1 hover:text-red-600">
+                                    <span className="text-sm">{assignedUser.name ?? ""}</span>
+                                    <button className="ml-1 hover:text-red-600" onClick={() => handleUnassignUserClick(assignedUser.user_id)}>
                                         <FiX className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -190,15 +312,16 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                             <div className="flex items-center gap-2 flex-wrap">
                                 {availableUsers.map((user) => (
                                     <button
-                                        key={user.id}
-                                        className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                                        key={user.user_id}
+                                        className="flex items-center gap-2 px-3 py-1.5 border border-gray-150 rounded-md hover:bg-gray-50 transition-colors "
+                                        onClick={() => handleAssignUserClick(user.user_id)}
                                     >
                                         <img
-                                            src={user.avatar}
-                                            alt={user.name}
+                                            src={user.user.avatar_url ?? conKhiImg}
+                                            alt={user.user.name ?? "User"}
                                             className="w-6 h-6 rounded-full"
                                         />
-                                        <span className="text-sm">{user.name}</span>
+                                        <span className="text-sm font-semibold">{user.user.name ?? "User"}</span>
                                     </button>
                                 ))}
                             </div>
@@ -206,25 +329,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                     </div>
 
                     {/* Comments Section */}
-                    <div className="space-y-3 pt-4 border-t">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-gray-900">Comments</span>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <img
-                                src={user?.avatar_url ?? conKhiImg}
-                                alt="Current user"
-                                className="w-8 h-8 rounded-full"
-                            />
-                            <Input
-                                type="text"
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                placeholder="Write a comment..."
-                                className="flex-1"
-                            />
-                        </div>
-                    </div>
+                    <CardComments cardId={card.id} />
                 </div>
 
                 {/* Footer */}

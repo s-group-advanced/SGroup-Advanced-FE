@@ -4,9 +4,10 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigge
 import React, { useEffect, useRef, useState } from "react";
 import { FiEdit, FiMoreHorizontal, FiUserPlus } from "react-icons/fi";
 import { DialogInviteToBoard } from "../components/Dialog/DialogInviteToBoard";
+import { BoardMemberAvatar } from "../components/BoardMemberAvatar";
 
 export function BoardHeader() {
-    const { board, updateBoardName } = useBoardDetail();
+    const { board, updateBoardName, refreshMembersOfBoard } = useBoardDetail();
     const [isEditName, setIsEditName] = useState(false);
     const [boardName, setBoardName] = useState(board?.name || "");
     const inputRef = useRef<HTMLInputElement>(null);
@@ -65,7 +66,7 @@ export function BoardHeader() {
 
     // handle members invited (callback when members invited)
     const handleMembersInvited = () => {
-        console.log("members invited");
+        refreshMembersOfBoard();
     }
 
     if (!board) return null;
@@ -103,7 +104,7 @@ export function BoardHeader() {
             }
 
             {/* Right side - Actions */}
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-5">
                 {/* invite button */}
                 <Button 
                     onClick={() => setIsInviteDialogOpen(true)}
@@ -111,6 +112,9 @@ export function BoardHeader() {
                     <FiUserPlus className="w-4 h-4" />
                     Invite
                 </Button>
+
+                <BoardMemberAvatar />
+
 
                 {/* More menu */}
                 <DropdownMenu>

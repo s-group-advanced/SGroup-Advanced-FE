@@ -92,3 +92,16 @@ export interface AcceptInvitationToBoardResponse {
   description: string;
   workspaceId: string;
 }
+
+export interface GetAllMemberOfBoardRequest {
+  boardId: string;
+}
+
+export interface GetAllMemberOfBoardResponse {
+  board_id: string;
+  user_id: string;
+  role: string;
+  joined_at: string;
+  permissions: string[];
+  user: User;
+}

@@ -14,6 +14,8 @@ import type {
   InviteUserToBoardResponse,
   AcceptInvitationToBoardRequest,
   AcceptInvitationToBoardResponse,
+  GetAllMemberOfBoardRequest,
+  GetAllMemberOfBoardResponse,
 } from "../api/type";
 
 export const useBoards = () => {
@@ -140,6 +142,21 @@ export const useBoards = () => {
     }
   };
 
+  // get all member of board
+  const getAllMemberOfBoard = async (
+    request: GetAllMemberOfBoardRequest,
+  ): Promise<GetAllMemberOfBoardResponse> => {
+    try {
+      const data = await boardApi.getAllMemberOfBoard(request);
+      if (!data) throw new Error("Failed to get all member of board");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to get all member of board: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllBoardsOfWorkspace,
     addBoardToWorkspace,
@@ -149,5 +166,6 @@ export const useBoards = () => {
     getAllMemberOfWorkspaceButNotInBoard,
     inviteUserToBoard,
     acceptInvitationToBoard,
+    getAllMemberOfBoard,
   };
 };

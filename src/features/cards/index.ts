@@ -10,4 +10,11 @@ export type {
   DeleteCardResponse,
   UpdateCardRequest,
   UpdateCardResponse,
+  AssignedUserToCardRequest,
+  AssignedUserToCardResponse,
+  UnassignUserFromCardRequest,
+  CreateCommentOnCardRequest,
+  CreateCommentOnCardResponse,
+  GetAllCommentsOfCardRequest,
+  GetAllCommentsOfCardResponse,
 } from "./api/type";

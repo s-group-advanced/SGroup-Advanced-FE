@@ -6,11 +6,11 @@ import { UserProvider } from "@/app/providers/UserProvider";
 function App() {
     return (
       <BrowserRouter basename="/react-app/">
-        <BoardProvider>
           <UserProvider>
+        <BoardProvider>
           <AppRoutes />
-          </UserProvider>
         </BoardProvider>
+          </UserProvider>
       </BrowserRouter>
   )
 }

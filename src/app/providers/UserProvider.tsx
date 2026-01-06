@@ -18,12 +18,17 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(() => {
+        const cached = localStorage.getItem('user');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [isLoading, setIsLoading] = useState(!user);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchUser();
+        if (!user) {
+            fetchUser();
+        }
     }, []);
 
     const fetchUser = async () => {
@@ -33,6 +38,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         try {
             const response = await userApi.getUserById();
             setUser(response as unknown as User);
+            localStorage.setItem('user', JSON.stringify(response));
         } catch (err) {
             console.error("Failed to fetch user:", err);
             setError("Failed to fetch user data");

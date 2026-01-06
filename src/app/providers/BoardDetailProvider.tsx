@@ -2,11 +2,12 @@ import type React from "react";
 import { useBoards, type Board } from "@/features/boards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { GetAllMemberOfWorkspaceButNotInBoardResponse, GetBoardByIdRequest, GetBoardByIdResponse } from "@/features/boards/api/type";
+import type { GetAllMemberOfBoardResponse, GetAllMemberOfWorkspaceButNotInBoardResponse, GetBoardByIdRequest, GetBoardByIdResponse } from "@/features/boards/api/type";
 
 interface BoardDetailContextType {
     // State
     board: Board | null;
+    membersOfBoard: GetAllMemberOfBoardResponse[];
     isLoading: boolean;
     error: string | null;
 
@@ -14,6 +15,8 @@ interface BoardDetailContextType {
     getBoardById: (request: GetBoardByIdRequest) => Promise<GetBoardByIdResponse>;
     updateBoardName: (name: string) => Promise<void>;
     fetchAllMemberOfWorkspaceButNotInBoard: (boardId: string) => Promise<GetAllMemberOfWorkspaceButNotInBoardResponse[]>;
+    fetchAllMemberOfBoard: (boardId: string) => Promise<void>;
+    refreshMembersOfBoard: () => void;
 }
 
 const BoardDetailContext = createContext<BoardDetailContextType | undefined>(undefined);
@@ -23,13 +26,15 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
     const [board, setBoard] = useState<Board | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [membersOfBoard, setMembersOfBoard] = useState<GetAllMemberOfBoardResponse[]>([]);
     
-    const { getBoardById, editBoardToWorkspace, getAllMemberOfWorkspaceButNotInBoard } = useBoards();
+    const { getBoardById, editBoardToWorkspace, getAllMemberOfWorkspaceButNotInBoard, getAllMemberOfBoard } = useBoards();
 
     // fetch board data
     useEffect(() => {
         if (boardId) {
             fetchBoard(boardId);
+            fetchAllMemberOfBoard(boardId);
         }
     }, [boardId]);
 
@@ -79,14 +84,35 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
         }
     }
 
+    // fetch all member of board
+    const fetchAllMemberOfBoard = async (boardId: string) => {
+        try {
+            const data = await getAllMemberOfBoard({ boardId });
+            setMembersOfBoard(data as unknown as GetAllMemberOfBoardResponse[]);
+        } catch (err) {
+            setError("Failed to fetch all member of board");
+            console.error(`Failed to fetch all member of board: ${err}`);
+            throw err;
+        }
+    }
+
+    // refresh members of board
+    const refreshMembersOfBoard = async () => {
+        if (boardId) {
+            await fetchAllMemberOfBoard(boardId);
+        }
+    }
+
     const value : BoardDetailContextType = {
         board,
+        membersOfBoard,
         isLoading,
         error,
         getBoardById,
         updateBoardName,
         fetchAllMemberOfWorkspaceButNotInBoard,
-        
+        fetchAllMemberOfBoard,
+        refreshMembersOfBoard,
     }
 
     return (

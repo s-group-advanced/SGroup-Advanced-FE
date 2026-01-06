@@ -1,11 +1,18 @@
 import { fetchFactory } from "@/shared/api";
 import type {
+  AssignedUserToCardRequest,
+  AssignedUserToCardResponse,
   CreateCardRequest,
   CreateCardResponse,
+  CreateCommentOnCardRequest,
+  CreateCommentOnCardResponse,
   DeleteCardRequest,
   DeleteCardResponse,
   GetAllCardsOfBoardRequest,
   GetAllCardsOfBoardResponse,
+  GetAllCommentsOfCardRequest,
+  GetAllCommentsOfCardResponse,
+  UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
 } from "./type";
@@ -41,6 +48,48 @@ export const cardApi = {
     return fetchFactory.patch<UpdateCardResponse>(
       CardEndpoint.UPDATE_CARD.replace("{cardId}", cardId),
       body,
+    );
+  },
+
+  // assign user to card
+  assignUserToCard: (
+    request: AssignedUserToCardRequest,
+  ): Promise<AssignedUserToCardResponse> => {
+    return fetchFactory.post<AssignedUserToCardResponse>(
+      CardEndpoint.ASSIGN_USER_TO_CARD.replace("{cardId}", request.cardId),
+      { user_id: request.user_id },
+    );
+  },
+
+  // unassign user from card
+  unassignUserFromCard: (
+    request: UnassignUserFromCardRequest,
+  ): Promise<void> => {
+    return fetchFactory.delete<void>(
+      CardEndpoint.UNASSIGN_USER_FROM_CARD.replace(
+        "{cardId}",
+        request.cardId,
+      ).replace("{userId}", request.userId),
+    );
+  },
+
+  // create comment on card
+  createCommentOnCard: (
+    request: CreateCommentOnCardRequest,
+  ): Promise<CreateCommentOnCardResponse> => {
+    const { cardId, ...body } = request;
+    return fetchFactory.post<CreateCommentOnCardResponse>(
+      CardEndpoint.CREATE_COMMENT_ON_CARD.replace("{cardId}", cardId),
+      body,
+    );
+  },
+
+  // get all comments of card
+  getAllCommentsOfCard: (
+    request: GetAllCommentsOfCardRequest,
+  ): Promise<GetAllCommentsOfCardResponse> => {
+    return fetchFactory.get<GetAllCommentsOfCardResponse>(
+      CardEndpoint.GET_ALL_COMMENTS_OF_CARD.replace("{cardId}", request.cardId),
     );
   },
 };

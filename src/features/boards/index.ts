@@ -13,4 +13,6 @@ export type {
   InviteUserToBoardResponse,
   AcceptInvitationToBoardRequest,
   AcceptInvitationToBoardResponse,
+  GetAllMemberOfBoardRequest,
+  GetAllMemberOfBoardResponse,
 } from "./api/type";

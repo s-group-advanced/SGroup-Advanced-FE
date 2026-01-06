@@ -1,4 +1,4 @@
-import type { UpdateCardRequest, UpdateCardResponse } from "@/features/cards/api/type";
+import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest } from "@/features/cards/api/type";
 import { type Card, type GetAllCardsOfBoardResponse, type GetAllCardsOfBoardRequest, useCards, type CreateCardRequest, type CreateCardResponse, type DeleteCardResponse, type DeleteCardRequest } from "@/features/cards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -17,6 +17,10 @@ interface CardDetailContextType {
     removeCardFromState: (cardId: string) => void;
     fetchUpdateCard: (request: UpdateCardRequest) => Promise<UpdateCardResponse>;
     updateCardInState: (cardId: string, updates: Partial<Card>) => void;
+    handleAssignUserToCard: (request: AssignedUserToCardRequest) => Promise<AssignedUserToCardResponse>;
+    handleUnassignUserFromCard: (request: UnassignUserFromCardRequest) => Promise<void>;
+    handleCreateCommentOnCard: (request: CreateCommentOnCardRequest) => Promise<CreateCommentOnCardResponse>;
+    handleGetAllCommentsOfCard: (request: GetAllCommentsOfCardRequest) => Promise<GetAllCommentsOfCardResponse>;
 }
 
 const CardDetailContext = createContext<CardDetailContextType | undefined>(undefined);
@@ -27,7 +31,7 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const { getAllCardsOfBoard, createCard, deleteCard, updateCard } = useCards();
+    const { getAllCardsOfBoard, createCard, deleteCard, updateCard, assignUserToCard, unassignUserFromCard, createCommentOnCard, getAllCommentsOfCard } = useCards();
 
     // get data from api
     useEffect(() => {
@@ -113,6 +117,55 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         }
     }
 
+    // assign user to card
+    const handleAssignUserToCard = async (request: AssignedUserToCardRequest) : Promise<AssignedUserToCardResponse> => {
+        try {
+            const data = await assignUserToCard(request);
+            if (!data) throw new Error("Failed to assign user to card");
+            return data;
+        } catch (err) {
+            setError("Failed to assign user to card");
+            console.error(`Failed to assign user to card: ${err}`);
+            throw err;
+        }
+    }
+
+    // unassign user from card
+    const handleUnassignUserFromCard = async (request: UnassignUserFromCardRequest) : Promise<void> => {
+        try {
+            await unassignUserFromCard(request);
+        } catch (err) {
+            setError("Failed to unassign user from card");
+            console.error(`Failed to unassign user from card: ${err}`);
+            throw err;
+        }
+    }
+
+    // create comment on card
+    const handleCreateCommentOnCard = async (request: CreateCommentOnCardRequest) : Promise<CreateCommentOnCardResponse> => {
+        try {
+            const data = await createCommentOnCard(request);
+            if (!data) throw new Error("Failed to create comment on card");
+            return data;
+        } catch (err) {
+            setError("Failed to create comment on card");
+            console.error(`Failed to create comment on card: ${err}`);
+            throw err;
+        }
+    }
+
+    // get all comments of card
+    const handleGetAllCommentsOfCard = async (request: GetAllCommentsOfCardRequest) : Promise<GetAllCommentsOfCardResponse> => {
+        try {
+            const data = await getAllCommentsOfCard(request);
+            if (!data) throw new Error("Failed to get all comments of card");
+            return data;
+        } catch (err) {
+            setError("Failed to get all comments of card");
+            console.error(`Failed to get all comments of card: ${err}`);
+            throw err;
+        }
+    }
     const value: CardDetailContextType = {
         cards,
         isLoading,
@@ -123,7 +176,11 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         fetchDeleteCard,
         removeCardFromState,
         fetchUpdateCard,
-        updateCardInState
+        updateCardInState,
+        handleAssignUserToCard,
+        handleUnassignUserFromCard,
+        handleCreateCommentOnCard,
+        handleGetAllCommentsOfCard,
     }
 
     return (
