@@ -35,7 +35,6 @@ export const useAuth = () => {
     try {
       const response = await authApi.register(credentials);
       localStorage.setItem("registerEmail", credentials.email);
-      navigate("/inputCode");
       return response;
     } catch (err) {
       const apiError = err as ApiError;

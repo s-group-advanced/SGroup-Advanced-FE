@@ -1,5 +1,5 @@
 import type { Card } from "@/features/cards/index";
-import { useBoardDetail } from "@/app/providers/BoardDetailProvider";
+import { useBoardDetail } from "@/features/providers/BoardDetailProvider";
 import { useMemo } from "react";
 
 interface CardMemberAvatarsProps {

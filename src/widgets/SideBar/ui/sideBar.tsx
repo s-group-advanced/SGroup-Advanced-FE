@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { FiFolder } from "react-icons/fi";
 import { useEffect, useMemo } from "react";
 import { useProject, type Project } from "@/features/projects";
-import { useBoardContext } from "@/app/providers"; 
+import { useBoardContext } from "@/features/providers"; 
 
 interface WorkspaceWithBoardCount extends Project {
     boardCount: number;

@@ -3,7 +3,7 @@ import { FiEdit2 } from "react-icons/fi";
 import { FiTrash2 } from "react-icons/fi";
 import { Fragment } from "react";
 import { FaEllipsisH } from "react-icons/fa";
-import { useBoardContext } from "@/app/providers/index";
+import { useBoardContext } from "@/features/providers/index";
 
 interface BoardOptionsMenuProps {
     boardId: string;

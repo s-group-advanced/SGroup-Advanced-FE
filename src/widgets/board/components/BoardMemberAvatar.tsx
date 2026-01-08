@@ -1,4 +1,4 @@
-import { useBoardDetail } from "@/app/providers/BoardDetailProvider";
+import { useBoardDetail } from "@/features/providers/BoardDetailProvider";
 
 export function BoardMemberAvatar() {
     const { membersOfBoard } = useBoardDetail();

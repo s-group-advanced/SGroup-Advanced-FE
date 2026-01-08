@@ -1,7 +1,7 @@
 import { BrowserRouter } from "react-router-dom"
 import { AppRoutes } from "./router/index";
-import { BoardProvider } from "./providers";
-import { UserProvider } from "@/app/providers/UserProvider";
+import { BoardProvider } from "../features/providers";
+import { UserProvider } from "@/features/providers/UserProvider";
 
 function App() {
     return (

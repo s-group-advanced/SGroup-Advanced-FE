@@ -2,20 +2,19 @@ import { Button } from "@/shared/ui/button/button";
 import { Input } from "@/shared/ui/input/input";
 import { Label } from "@/shared/ui/label/label";
 import backgroundLogin from "@/shared/assets/img/background_login.jpg";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useChangePassword } from "@/features/auth/changePassword/model/useChangePassword";
 
 export function InputEmail() {
     const [email, setEmail] = useState("");
     const { forgotPassword, isLoading } = useChangePassword();
-    const navigate = useNavigate();
     async function submit(e: React.MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
         try {
             const response = await forgotPassword(email);
             if (!response) throw new Error("Failed to send reset link");
-            navigate("/verify-otp", { state: { email: email } });
+            alert("Please check your email for the reset link");
             return response;
         } catch (err) {
             throw err;

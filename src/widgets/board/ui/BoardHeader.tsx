@@ -1,4 +1,4 @@
-import { useBoardDetail } from "@/app/providers/BoardDetailProvider";
+import { useBoardDetail } from "@/features/providers/BoardDetailProvider";
 import { Button } from "@/shared/ui/button";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import React, { useEffect, useRef, useState } from "react";

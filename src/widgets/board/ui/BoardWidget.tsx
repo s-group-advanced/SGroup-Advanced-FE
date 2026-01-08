@@ -1,5 +1,5 @@
 // Main Container
-import { useBoardDetail } from "@/app/providers/BoardDetailProvider";
+import { useBoardDetail } from "@/features/providers/BoardDetailProvider";
 import { BoardHeader } from "./BoardHeader";
 import { BoardContent } from "./BoardContent";
 export function BoardWidget() {

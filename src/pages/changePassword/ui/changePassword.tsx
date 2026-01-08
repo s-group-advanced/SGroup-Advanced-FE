@@ -1,32 +1,48 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Label } from "@/shared/ui/label/label";
 import { Input } from "@/shared/ui/input/input";
 import { Button } from "@/shared/ui/button/button";
 import backgroundLogin from "@/shared/assets/img/background_login.jpg";
 import { useChangePassword } from "@/features/auth/changePassword/model/useChangePassword";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function ChangePassword() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const { changePassword, isLoading } = useChangePassword();
-    const location = useLocation();
-    const email = location.state?.email as string;
-    const code = location.state?.code as string;
-    console.log(email, code);
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token');
     const navigate = useNavigate();
+    
+    useEffect(() => {
+        // Nếu không có token thì redirect về trang forgot password
+        if (!token) {
+            navigate('/forgot-password');
+        }
+    }, [token, navigate]);
+
+    console.log("token from URL:", token);
+    
     const handleChangePassword = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        if (!token) {
+            alert("Token không hợp lệ");
+            return;
+        }
+        
         try {
-            const response = await changePassword(email, newPassword, confirmPassword, code);
+            const response = await changePassword(token, newPassword, confirmPassword);
             if (!response) 
                 throw new Error("Failed to change password");
+            alert("Đổi mật khẩu thành công!");
             navigate("/");
             return response;
         } catch (err) {
+            console.error("Error changing password:", err);
             throw err;
         }
     }
+    
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen bg-[#0A0A0A]">
             {/* Form section */}

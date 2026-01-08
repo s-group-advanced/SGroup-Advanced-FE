@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { FiTag, FiX } from "react-icons/fi";
 import { TAG_COLORS, type TagColorId } from "@/shared/constants/tagColors";
 import { useLabels } from "@/features/labels/index";
-import { useLabelContext } from "@/app/providers/LabelProvider";
+import { useLabelContext } from "@/features/providers/LabelProvider";
 
 interface AddTagToCardProps {   
     cardId: string;

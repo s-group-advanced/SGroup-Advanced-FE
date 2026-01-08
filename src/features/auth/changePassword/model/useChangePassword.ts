@@ -30,18 +30,16 @@ export const useChangePassword = () => {
   };
 
   const changePassword = async (
-    email: string,
+    token: string,
     newPassword: string,
     confirmPassword: string,
-    code: string,
   ) => {
     setIsLoading(true);
     try {
       const response = await changePasswordApi.changePassword({
-        email,
-        newPassword,
-        confirmPassword,
-        code,
+        token,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
       });
       if (!response) throw new Error("Failed to change password");
       return response;

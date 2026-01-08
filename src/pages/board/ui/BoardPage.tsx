@@ -1,8 +1,8 @@
-import { BoardDetailProvider } from "@/app/providers/BoardDetailProvider";
-import { ListProvider, CardDetailProvider } from "@/app/providers/index";
+import { BoardDetailProvider } from "@/features/providers/BoardDetailProvider";
+import { ListProvider, CardDetailProvider } from "@/features/providers/index";
 import { BoardWidget } from "@/widgets/board/ui/BoardWidget";
-import { LabelProvider } from "@/app/providers/LabelProvider";
-import { ChecklistProvider } from "@/app/providers/ChecklistProvider";
+import { LabelProvider } from "@/features/providers/LabelProvider";
+import { ChecklistProvider } from "@/features/providers/ChecklistProvider";
 
 export function BoardPage() {
     return (

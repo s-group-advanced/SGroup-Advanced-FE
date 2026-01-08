@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
-import { useListContext } from "@/app/providers/ListProvider";
+import { useListContext } from "@/features/providers/ListProvider";
 import { useParams } from "react-router-dom";
 import type { List } from "@/features/lists/api/type";
 

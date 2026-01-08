@@ -7,7 +7,7 @@ import type { Project } from "@/features/projects/api/type";
 import { useEffect, useState } from "react";
 import { BoardOptionsMenu } from "../components/BoardOptionsMenu";
 import { useBoards } from "@/features/boards";
-import { useBoardContext } from "@/app/providers/index"; 
+import { useBoardContext } from "@/features/providers/index"; 
 import type { Board } from "@/features/boards/api/type";
 import { Link } from "react-router-dom";
 

@@ -13,7 +13,7 @@ import {
   import { Label } from "@/shared/ui/label/label";
   import { Input } from "@/shared/ui/input/input";
   import { useState, useEffect } from "react";
-  import { useBoardContext } from "@/app/providers/index";
+  import { useBoardContext } from "@/features/providers/index";
   import { useBoards } from "@/features/boards";  // ← THÊM
   import type { ApiError } from "@/shared/api/fetchFactory";  // ← THÊM
   

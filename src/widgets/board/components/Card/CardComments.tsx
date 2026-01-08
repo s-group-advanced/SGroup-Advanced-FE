@@ -1,7 +1,7 @@
 import type { GetAllCommentsOfCardResponse } from "@/features/cards";
 import { useEffect, useState } from "react";
-import { useCardDetailContext } from "@/app/providers/CardDetailProvider";
-import { useUser } from "@/app/providers/UserProvider";
+import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
+import { useUser } from "@/features/providers/UserProvider";
 import { formatTimeAgo } from "@/shared/utils/dateUtils";
 import { useSSE } from "@/shared/hook/useSSE";
 

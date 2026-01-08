@@ -1,4 +1,4 @@
-import { useListContext } from "@/app/providers/index";
+import { useListContext } from "@/features/providers/index";
 import { BoardList } from "../components/List/BoardList";
 import { AddListButton } from "../components/List/AddListButton";
 

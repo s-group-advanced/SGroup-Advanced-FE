@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { FiCheckSquare, FiPlus, FiTrash2 } from "react-icons/fi";
 import type { Card } from "@/features/cards";
 import { useChecklist, type Checklist } from "@/features/checklists";
-import { useChecklistContext } from "@/app/providers/ChecklistProvider";
+import { useChecklistContext } from "@/features/providers/ChecklistProvider";
 import type { ChecklistItem } from "@/features/checklists/api/type";
 
 interface DialogChecklistProps {

@@ -16,10 +16,9 @@ export interface VerifyOTPResponse {
 }
 
 export interface ChangePasswordRequest {
-  email: string;
-  newPassword: string;
-  confirmPassword: string;
-  code: string;
+  token: string;
+  new_password: string;
+  confirm_password: string;
 }
 
 export interface ChangePasswordResponse {

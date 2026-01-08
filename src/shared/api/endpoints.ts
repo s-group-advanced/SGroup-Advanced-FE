@@ -8,7 +8,7 @@ export const API_ENDPOINTS = {
     CHECK_AUTH: "/auth/check-auth",
     FORGOT_PASSWORD: "/auth/forgot-password",
     VERIFY_OTP: "/auth/verify-otp",
-    CHANGE_PASSWORD: "/auth/change-password",
+    CHANGE_PASSWORD: "/auth/reset-password",
     CHECK_ME: "/users/me",
   },
   HOME: {},

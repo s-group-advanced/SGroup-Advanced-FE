@@ -1,10 +1,10 @@
 import { FiEdit, FiMoreHorizontal, FiPlus, FiTrash2 } from "react-icons/fi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { List } from "@/features/lists/api/type";
-import { useCardDetailContext } from "@/app/providers/CardDetailProvider";
+import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
 import { CardInList } from "../Card/CardInList";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu/dropdown-menu";
-import { useListContext } from "@/app/providers/ListProvider";
+import { useListContext } from "@/features/providers/ListProvider";
 
 interface BoardListProps {
     list: List;

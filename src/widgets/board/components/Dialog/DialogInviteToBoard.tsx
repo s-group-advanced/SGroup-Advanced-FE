@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogTrigger, D
 import { Input } from "@/shared/ui/input";
 import { useEffect, useState } from "react";
 import type { GetAllMemberOfWorkspaceButNotInBoardResponse } from "@/features/boards/index";
-import { useBoardDetail } from "@/app/providers/index";
+import { useBoardDetail } from "@/features/providers/index";
 import { useBoards } from "@/features/boards";
 
 interface DialogInviteToBoardProps {
