@@ -98,7 +98,7 @@ function LoginForm({
       </div>
 
       {/* login with github */}
-      <Button className="bg-[#1E1E1E] text-white w-full border border-gray-600 hover:bg-[#2A2A2A] flex items-center justify-center gap-2 mt-4 cursor-pointer" onClick={handleGoogleLogin}>
+      <Button type="button" className="bg-[#1E1E1E] text-white w-full border border-gray-600 hover:bg-[#2A2A2A] flex items-center justify-center gap-2 mt-4 cursor-pointer" onClick={handleGoogleLogin}>
         <FaGoogle />
         Login with Google
       </Button>

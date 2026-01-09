@@ -34,7 +34,7 @@ export const useAuth = () => {
     setError(null);
     try {
       const response = await authApi.register(credentials);
-      localStorage.setItem("registerEmail", credentials.email);
+      // localStorage.setItem("registerEmail", credentials.email);
       return response;
     } catch (err) {
       const apiError = err as ApiError;

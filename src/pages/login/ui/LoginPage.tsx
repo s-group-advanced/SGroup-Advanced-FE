@@ -1,9 +1,7 @@
 import { LoginWidget } from "@/widgets/login"
 import backgroundLogin from "@/shared/assets/img/background_login.jpg"
-import { useOAuthCallback } from "@/pages/login/index";
 
 export function LoginPage() {
-    useOAuthCallback();
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen bg-[#0A0A0A]">
             {/* Login form  */}
