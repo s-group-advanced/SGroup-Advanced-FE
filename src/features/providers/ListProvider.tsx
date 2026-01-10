@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { createContext } from "react";
 import type { DeleteListFromBoardRequest, UpdateNameListRequest } from "@/features/lists/api/type";
+import { useBoardContext } from "./BoardProvider";
 
 interface ListContextType {
     // State
@@ -25,7 +26,7 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
     const [list, setList] = useState<List[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const { refreshBoard } = useBoardContext();
     const { getAllListsOfBoard, createList, updateNameList, deleteListFromBoard } = useLists();
 
     // get data from api
@@ -54,6 +55,10 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
         try {
             const data = await createList(request);
             if (!data) throw new Error("Failed to create list");
+
+            if (boardId) {
+                await refreshBoard(boardId);
+            }
             return data;
         }
         catch (err) {
@@ -63,14 +68,22 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    const addListToState = (list: List) => {
+    const addListToState = async (list: List) => {
         setList(prevList => [...prevList, list]);
+
+        if (boardId) {
+            await refreshBoard(boardId);
+        }
     }
 
     const fetchUpdateNameList = async (request: UpdateNameListRequest) => {
         try {
             await updateNameList(request);
             setList(prevList => prevList.map(l => l.id === request.listId ? { ...l, name: request.name } : l));
+
+            if (boardId) {
+                await refreshBoard(boardId);
+            }
         } catch (err) {
             setError("Failed to update name list");
             console.error(`Failed to update name list: ${err}`);
@@ -83,6 +96,10 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
         try {
             await deleteListFromBoard(request);
             setList(prevList => prevList.filter(l => l.id !== request.listId));
+
+            if (boardId) {
+                await refreshBoard(boardId);
+            }
         } catch (err) {
             setError("Failed to delete list from board");
             console.error(`Failed to delete list from board: ${err}`);

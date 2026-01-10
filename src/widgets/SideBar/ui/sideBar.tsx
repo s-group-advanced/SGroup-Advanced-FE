@@ -1,31 +1,18 @@
 import { UserProfileMenu, InfoWorkspace } from "@/widgets/SideBar/components/index";
 import { Link } from "react-router-dom";
 import { FiFolder } from "react-icons/fi";
-import { useEffect, useMemo } from "react";
-import { useProject, type Project } from "@/features/projects";
+import { useMemo } from "react";
+import { type Project } from "@/features/projects";
 import { useBoardContext } from "@/features/providers"; 
+import { useWorkspaceContext } from "@/features/providers/WorkspaceProvider";
 
 interface WorkspaceWithBoardCount extends Project {
     boardCount: number;
 }
 
 export function SideBar() {
-    const { getAllProjectsOfUser, projects } = useProject(); 
-    const { boards, fetchBoardsByWorkspace } = useBoardContext();  
-
-    // Fetch projects khi mount
-    useEffect(() => {
-        getAllProjectsOfUser();
-    }, []);
-
-    // Fetch boards cho mỗi workspace
-    useEffect(() => {
-        if (projects.length > 0) {
-            projects.forEach(project => {
-                fetchBoardsByWorkspace(project.id);
-            });
-        }
-    }, [projects]);
+    const { projects } = useWorkspaceContext(); 
+    const { boards } = useBoardContext();  
 
     // Compute workspaces với board count từ boards Context
     const workspacesWithCount = useMemo<WorkspaceWithBoardCount[]>(() => {
@@ -33,7 +20,7 @@ export function SideBar() {
             ...project,
             boardCount: boards.filter(b => b.workspaceId === project.id).length
         }));
-    }, [projects, boards]);  // Re-compute khi boards thay đổi
+    }, [projects, boards]);
 
     return (
         <div className="w-68 h-screen bg-gray-50 border-r border-gray-200 flex flex-col sticky top-0 left-0">
@@ -64,7 +51,7 @@ export function SideBar() {
                             workspacesWithCount.map((workspace) => (
                                 <Link
                                     key={workspace.id}
-                                    to="/home"
+                                    to={`/workspaces/${workspace.id}`}
                                     className="text-sm rounded-md hover:bg-gray-100 cursor-pointer p-1 ml-2 w-full flex items-center gap-2 pr-3 transition-colors"
                                 >
                                     <FiFolder className="w-4 h-4" />

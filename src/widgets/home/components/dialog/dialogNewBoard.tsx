@@ -14,8 +14,7 @@ import {
   import { Input } from "@/shared/ui/input/input";
   import { useState, useEffect } from "react";
   import { useBoardContext } from "@/features/providers/index";
-  import { useBoards } from "@/features/boards";  // ← THÊM
-  import type { ApiError } from "@/shared/api/fetchFactory";  // ← THÊM
+  import type { ApiError } from "@/shared/api/fetchFactory"; 
   
   interface DialogNewBoardProps {
     headerTitle?: string;
@@ -39,8 +38,7 @@ import {
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);  
     
-    const { isEditDialogOpen, selectedBoard, closeEditDialog, updateBoard } = useBoardContext();
-    const { addBoardToWorkspace } = useBoards();  
+    const { isEditDialogOpen, selectedBoard, closeEditDialog, updateBoard, createBoard } = useBoardContext();
   
     // Sync với Context cho chế độ Edit
     useEffect(() => {
@@ -83,7 +81,7 @@ import {
                     return;
                 }
   
-                const newBoard = await addBoardToWorkspace({
+                const newBoard = await createBoard({
                     name: boardTitle.trim(),
                     description: description.trim() || undefined,
                     workspaceId: workspaceId

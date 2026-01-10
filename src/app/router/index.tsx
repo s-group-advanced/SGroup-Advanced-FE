@@ -9,6 +9,7 @@ import OAuthCallbackPage from "@/pages/login/ui/OAuthCallbackPage"
 const RegisterPage = React.lazy(() => import("@/pages/register/ui/RegisterPage").then(module => ({ default: module.RegisterPage })))
 const LoginPage = React.lazy(() => import("@/pages/login/ui/LoginPage").then(module => ({ default: module.LoginPage })))
 const HomePage = React.lazy(() => import("@/pages/home/ui/HomePage").then(module => ({ default: module.HomePage })))
+const WorkspacePage = React.lazy(() => import("@/pages/workspaces/ui/WorkspacePage").then(module => ({ default: module.WorkspacePage })))
 const InputOTPForm = React.lazy(() => import("@/features/auth/login/ui/FormInputOTP").then(module => ({ default: module.InputOTPForm })))
 const InputEmail = React.lazy(() => import("@/pages/changePassword/ui/inputEmail").then(module => ({ default: module.InputEmail })))
 const InputOTPChangePassword = React.lazy(() => import("@/pages/changePassword/ui/inputOTP").then(module => ({ default: module.InputOTPChangePassword })))
@@ -18,7 +19,7 @@ const BoardPage = React.lazy(() => import("@/pages/board/ui/BoardPage").then(mod
 export function AppRoutes() {
     return (
         <Routes>
-            {/* Routes KHÔNG CẦN sidebar */}
+            {/* Routes sidebar */}
             <Route path="/" element={
                 <AuthRedirect>
                     <React.Suspense fallback>
@@ -85,6 +86,12 @@ export function AppRoutes() {
                 <Route path="/board/:boardId" element={
                     <React.Suspense fallback={<div>Loading...</div>}>
                         <BoardPage />
+                    </React.Suspense>
+                } />
+
+                <Route path="/workspaces/:workspaceId" element={
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <WorkspacePage />
                     </React.Suspense>
                 } />
             </Route>

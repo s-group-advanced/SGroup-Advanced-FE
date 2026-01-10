@@ -12,6 +12,8 @@ export interface Board {
   cover_url: string;
   is_closed: boolean;
   created_by: User;
+  lists_count?: number;
+  members_count?: number;
 }
 
 export interface AddBoardToWorkspaceRequest {

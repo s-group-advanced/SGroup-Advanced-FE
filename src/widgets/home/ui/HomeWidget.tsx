@@ -6,9 +6,7 @@ import type { ApiError } from "@/features/auth/login/api/type";
 import type { Project } from "@/features/projects/api/type";
 import { useEffect, useState } from "react";
 import { BoardOptionsMenu } from "../components/BoardOptionsMenu";
-import { useBoards } from "@/features/boards";
 import { useBoardContext } from "@/features/providers/index"; 
-import type { Board } from "@/features/boards/api/type";
 import { Link } from "react-router-dom";
 
 interface WorkspaceBoards {
@@ -16,28 +14,34 @@ interface WorkspaceBoards {
         id: string;
         name: string;
         description: string;
-        tasksCount?: number;
+        listsCount?: number;
         membersCount?: number;
     }[];
 }
 
 export function HomeWidget() {
     const { getAllProjectsOfUser } = useProject();
-    const { getAllBoardsOfWorkspace } = useBoards(); 
-    const { setBoards, boards } = useBoardContext();  
+    const { boards } = useBoardContext();  
     const [projects, setProjects] = useState<Project[]>([]);
     const [workspaceBoards, setWorkspaceBoards] = useState<WorkspaceBoards>({});
-    const [isLoadingBoards, setIsLoadingBoards] = useState(false);
 
     useEffect(() => {
         handleGetAllProjectsOfUser();
     }, []);
     
     useEffect(() => {
-        if (projects.length > 0) {
-            fetchAllWorkspaceBoards();
+        if (boards.length > 0 && projects.length > 0) {
+            const newWorkspaceBoards: WorkspaceBoards = {};
+
+            projects.forEach(project => {
+                newWorkspaceBoards[project.id] = boards.filter(
+                    (board: any) => board.workspaceId === project.id
+                );
+            });
+
+            setWorkspaceBoards(newWorkspaceBoards);
         }
-    }, [projects]);
+    }, [boards, projects]);
 
     useEffect(() => {
         if (boards.length > 0 && projects.length > 0) {
@@ -61,41 +65,6 @@ export function HomeWidget() {
             const apiError = err as ApiError;
             alert(apiError.message);
             setProjects([]);
-        }
-    };
-
-    const fetchAllWorkspaceBoards = async () => {
-        setIsLoadingBoards(true);
-        const boardsData: WorkspaceBoards = {};
-        let allBoards: any[] = [];  // tập hợp tất cả boards
-
-        try {
-            await Promise.all(
-                projects.map(async (project) => {
-                    try {
-                        const boards = await getAllBoardsOfWorkspace(project.id);
-
-                        // gán workspaceId vào boards
-                        const boardsWithWorkspaceId = boards.map((board: Board) => ({
-                            ...board,
-                            workspaceId: project.id as string
-                        }))
-                        
-                        boardsData[project.id] = boardsWithWorkspaceId;
-                        allBoards = [...allBoards, ...boardsWithWorkspaceId]; 
-                    } catch (err) {
-                        console.error(`Failed to fetch boards for workspace ${project.id}:`, err);
-                        boardsData[project.id] = [];
-                    }
-                })
-            );
-
-            setWorkspaceBoards(boardsData);
-            setBoards(allBoards); // sync boards vào Context để edit/delete hoạt động 
-        } catch (err) {
-            console.error("Error fetching workspace boards:", err);
-        } finally {
-            setIsLoadingBoards(false);
         }
     };
 
@@ -125,10 +94,6 @@ export function HomeWidget() {
                 </div>
             </div>
 
-            {isLoadingBoards && (
-                <div className="px-8 text-sm text-gray-500">Loading boards...</div>
-            )}
-
             {projects.length > 0 ? (
                 projects.map((project) => {
                     const projectBoards = workspaceBoards[project.id] || [];
@@ -150,7 +115,7 @@ export function HomeWidget() {
                                     headerTitle="Create New Board" 
                                     headerDescription="Create a new board to organize your project tasks and collaborate with your team."
                                     workspaceId={project.id}
-                                    onBoardCreated={fetchAllWorkspaceBoards}
+                                    onBoardCreated={handleWorkspaceCreated}
                                 />
                             </div>
 
@@ -189,7 +154,7 @@ export function HomeWidget() {
                                             <div className="text-sm text-gray-500 min-h-[2.5rem]">{board.description}</div>
                                             <div className="flex items-center justify-between mt-2">
                                                 <div className="text-sm text-gray-500">
-                                                    {board.tasksCount || 0} {board.tasksCount === 1 ? 'task' : 'tasks'}
+                                                    {board.listsCount || 0} {board.listsCount === 1 ? 'list' : 'lists'}
                                                 </div>
                                                 <div className="flex items-center gap-1 text-gray-500">
                                                     <BsPeople className="w-4 h-4 text-gray-500" />

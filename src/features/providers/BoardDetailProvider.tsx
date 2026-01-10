@@ -3,6 +3,7 @@ import { useBoards, type Board } from "@/features/boards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { GetAllMemberOfBoardResponse, GetAllMemberOfWorkspaceButNotInBoardResponse, GetBoardByIdRequest, GetBoardByIdResponse } from "@/features/boards/api/type";
+import { useBoardContext } from "./BoardProvider";
 
 interface BoardDetailContextType {
     // State
@@ -27,7 +28,7 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [membersOfBoard, setMembersOfBoard] = useState<GetAllMemberOfBoardResponse[]>([]);
-    
+    const { refreshBoard, setBoards } = useBoardContext();
     const { getBoardById, editBoardToWorkspace, getAllMemberOfWorkspaceButNotInBoard, getAllMemberOfBoard } = useBoards();
 
     // fetch board data
@@ -61,12 +62,21 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
             if (!name.trim() || name.trim() === board?.name) {
                 return;
             }
-            console.log("hehe");
             await editBoardToWorkspace({
                 boardId: board?.id || "",
                 name: name.trim(),
             });
             setBoard({ ...board, name } as Board);
+
+            if (boardId) {
+                    setBoards(prevBoards => 
+                    prevBoards.map(b => 
+                        b.id === boardId 
+                            ? { ...b, name: name.trim() }
+                        : b
+                    )
+                );
+            }
         } catch (err) {
             console.error(`Failed to update board name: ${err}`);
             throw err;
@@ -89,6 +99,8 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
         try {
             const data = await getAllMemberOfBoard({ boardId });
             setMembersOfBoard(data as unknown as GetAllMemberOfBoardResponse[]);
+
+            await refreshBoard(boardId);
         } catch (err) {
             setError("Failed to fetch all member of board");
             console.error(`Failed to fetch all member of board: ${err}`);
@@ -100,6 +112,7 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
     const refreshMembersOfBoard = async () => {
         if (boardId) {
             await fetchAllMemberOfBoard(boardId);
+            await refreshBoard(boardId);
         }
     }
 
