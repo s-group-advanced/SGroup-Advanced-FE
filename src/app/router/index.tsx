@@ -5,6 +5,7 @@ import { AuthGuard } from "./AuthGuard"
 import { MainLayout } from "../layouts/MainLayout" 
 import { AcceptInvitationPage } from "@/pages/invitation/ui/AcceptInvitationPage"
 import OAuthCallbackPage from "@/pages/login/ui/OAuthCallbackPage"
+import { ProfilePage } from "@/pages/profile/index"
 
 const RegisterPage = React.lazy(() => import("@/pages/register/ui/RegisterPage").then(module => ({ default: module.RegisterPage })))
 const LoginPage = React.lazy(() => import("@/pages/login/ui/LoginPage").then(module => ({ default: module.LoginPage })))
@@ -92,6 +93,12 @@ export function AppRoutes() {
                 <Route path="/workspaces/:workspaceId" element={
                     <React.Suspense fallback={<div>Loading...</div>}>
                         <WorkspacePage />
+                    </React.Suspense>
+                } />
+
+                <Route path="/profile" element={
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <ProfilePage />
                     </React.Suspense>
                 } />
             </Route>

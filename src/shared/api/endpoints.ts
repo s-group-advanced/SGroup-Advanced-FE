@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     VERIFY_OTP: "/auth/verify-otp",
     CHANGE_PASSWORD: "/auth/reset-password",
     CHECK_ME: "/users/me",
+    UPDATE_PROFILE: "/users/{userId}",
   },
   HOME: {},
   USER: {

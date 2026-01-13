@@ -11,6 +11,8 @@ import { useState } from "react";
 import { useAuth } from "@/features/auth/login/model/useAuth";
 import type { ApiError } from "@/features/auth/login/api/type";
 import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "@/features/providers/UserProvider";
+
 function LoginForm({
   className,
   ...props
@@ -20,15 +22,17 @@ function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { isLoading, login } = useAuth();
+  const { refreshUser } = useUser();
   const navigate = useNavigate();
+  
   async function submit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
 
     try {
       const response = await login({ email, password });
       if (response) {
+        await refreshUser();
         navigate("/home");
-        // alert('Login successfully !!')
       }
     } catch (err) {
       const apiError = err as ApiError;

@@ -1,23 +1,20 @@
 import { useAuth } from "@/features/auth/login/model/useAuth";
 import { Menu, Transition } from "@headlessui/react"
-import { Fragment, useEffect, useState } from "react"
+import { Fragment } from "react"
 import { FiLogOut, FiUser, FiSettings } from "react-icons/fi";
 import type { ApiError } from "@/features/auth/login/api/type";
-import { userApi } from "@/features/home/api/userApi";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    avatar_url: string | null;
-}
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@/features/providers/UserProvider";
 
 export function UserProfileMenu() {
     const { logout } = useAuth();
-    const [userData, setUserData] = useState<User | null>(null);
+    const { user: userData, clearUser } = useUser();
+    const navigate = useNavigate();
+    
     const handleLogout = async () => {
         try {
+            clearUser();
             await logout();
         } catch (error) {
             const apiError = error as ApiError;
@@ -25,33 +22,17 @@ export function UserProfileMenu() {
         }
     }
 
-    const getUserById = async () => {
-      try {
-        const response = await userApi.getUserById();
-        if (!response) throw new Error("Failed to get user by id");
-        setUserData(response);
-      } catch (error) {
-        const apiError = error as ApiError;
-        alert(apiError.message);
-        setUserData(null);
-      }
-    }
-    
-    useEffect(() => {
-      getUserById();
-    }, []);
-
     return (
         <Menu as="div" className="relative p-4 border-gray-200 hover:bg-gray-100 transition-colors rounded-lg m-1">
                 <Menu.Button className="w-full border-none outline-none">
 
                     <div className="flex items-center gap-2 w-full"> 
-                        {/* 1. Avatar */}
+                        {/* Avatar */}
                         <div className="w-8 h-8 rounded-md bg-gray-200">
                             <img src={userData?.avatar_url || conKhiImg} alt="avatar" className="w-full h-full object-cover rounded-lg" />
                         </div>
                         
-                        {/* 2. Tex */}
+                        {/* Text */}
                         <div className="flex flex-col items-start">
                             <div className="text-sm font-medium select-none">{userData?.name}</div>
                             <div className="text-xs select-none">{userData?.email}</div>
@@ -69,7 +50,7 @@ export function UserProfileMenu() {
                     leaveTo="transform opacity-0 scale-95"
                 >
                     <Menu.Items className="absolute left-full bottom-0 mb-1 ml-2 w-60 origin-bottom-left bg-white divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none shadow-md border border-gray-200">
-            {/* Info User */}
+            {/* User Info */}
             <div className="px-1 py-1">
                 <div className="flex  items-center gap-2 p-2">
                     {/* avatar */}
@@ -83,7 +64,7 @@ export function UserProfileMenu() {
                     </div>
                 </div>
             </div>
-            {/* Phần 1: Profile & Settings */}
+            {/* Profile & Settings */}
             <div className="px-1 py-1">
               <Menu.Item>
                 {({ active }) => (
@@ -91,6 +72,7 @@ export function UserProfileMenu() {
                     className={`${
                       active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                     } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
+                    onClick={() => navigate("/profile")}
                   >
                     <FiUser className="w-5 h-5 mr-2" />
                     Profile
@@ -111,7 +93,7 @@ export function UserProfileMenu() {
               </Menu.Item>
             </div>
             
-            {/* Phần 2: Log out (có kẻ ngang) */}   
+            {/* Log out */}   
             <div className="px-1 py-1">
               <Menu.Item>
                 {({ active }) => (

@@ -2,6 +2,7 @@ import { AuthEndpoint, fetchFactory } from "@/shared/api";
 import type {
   LoginRequest,
   LoginResponse,
+  UpdateProfileRequest,
 } from "@/features/auth/login/api/type";
 import type {
   RegisterRequest,
@@ -53,5 +54,17 @@ export const authApi = {
     return fetchFactory.get<boolean>(AuthEndpoint.CHECK_ME, {
       withCredentials: true,
     });
+  },
+
+  // Update profile
+  updateProfile: (request: UpdateProfileRequest): Promise<void> => {
+    const { id, ...body } = request;
+    return fetchFactory.patch<void>(
+      AuthEndpoint.UPDATE_PROFILE.replace("{userId}", id),
+      body,
+      {
+        withCredentials: true,
+      },
+    );
   },
 };

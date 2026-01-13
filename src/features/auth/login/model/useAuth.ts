@@ -3,6 +3,7 @@ import { authApi } from "@/features/auth/login/api/authApi";
 import type {
   ApiError,
   LoginRequest,
+  UpdateProfileRequest,
   VerifyOTPRequest,
 } from "@/features/auth/login/api/type";
 import type { RegisterRequest } from "@/features/auth/login/api/type";
@@ -66,6 +67,7 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       await authApi.logout();
+      localStorage.removeItem("user");
       navigate("/");
     } catch (err) {
       const apiError = err as ApiError;
@@ -84,6 +86,17 @@ export const useAuth = () => {
     }
   };
 
+  // Update profile
+  const updateProfile = async (request: UpdateProfileRequest) => {
+    try {
+      const response = await authApi.updateProfile(request);
+      return response;
+    } catch (err) {
+      const apiError = err as ApiError;
+      throw apiError;
+    }
+  };
+
   return {
     isLoading,
     login,
@@ -92,5 +105,6 @@ export const useAuth = () => {
     verifyOTP,
     logout,
     checkMe,
+    updateProfile,
   };
 };

@@ -1,6 +1,8 @@
 // src/app/providers/UserProvider.tsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { userApi } from "@/features/home/api/userApi";
+import type { UpdateProfileRequest } from "../auth/login/api/type";
+import { authApi } from "../auth/login/api/authApi";
 
 interface User {
     id: string;
@@ -13,22 +15,20 @@ interface UserContextType {
     user: User | null;
     isLoading: boolean;
     error: string | null;
+    clearUser: () => void;
+    refreshUser: () => Promise<void>;
+    handleUpdateProfile: (request: UpdateProfileRequest) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(() => {
-        const cached = localStorage.getItem('user');
-        return cached ? JSON.parse(cached) : null;
-    });
-    const [isLoading, setIsLoading] = useState(!user);
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!user) {
-            fetchUser();
-        }
+        fetchUser();
     }, []);
 
     const fetchUser = async () => {
@@ -37,20 +37,45 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         
         try {
             const response = await userApi.getUserById();
-            setUser(response as unknown as User);
-            localStorage.setItem('user', JSON.stringify(response));
+            const userData = response as unknown as User;
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
         } catch (err) {
             console.error("Failed to fetch user:", err);
             setError("Failed to fetch user data");
+            localStorage.removeItem('user');
+            setUser(null);
         } finally {
             setIsLoading(false);
         }
     };
 
+    const clearUser = () => {
+        setUser(null);
+        localStorage.removeItem('user');
+    };
+
+    const refreshUser = async () => {
+        await fetchUser();
+    };
+
+    // update profile
+    const handleUpdateProfile = async (request: UpdateProfileRequest) => {
+        try {
+            await authApi.updateProfile(request);
+            
+            await fetchUser();
+        } catch (err) {
+            console.error("Failed to update profile:", err);
+        }
+    } 
     const value: UserContextType = {
         user,
         isLoading,
         error,
+        clearUser,
+        refreshUser,
+        handleUpdateProfile,
     };
 
     return (

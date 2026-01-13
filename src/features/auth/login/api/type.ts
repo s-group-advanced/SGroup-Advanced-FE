@@ -42,3 +42,9 @@ export interface VerifyOTPRequest {
 export interface VerifyOTPResponse {
   message: string;
 }
+
+export interface UpdateProfileRequest {
+  id: string;
+  name?: string;
+  avatar_url?: string;
+}
