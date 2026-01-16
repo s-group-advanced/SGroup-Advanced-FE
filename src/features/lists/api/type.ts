@@ -49,3 +49,8 @@ export interface DeleteListFromBoardRequest {
   listId: string;
   archived: boolean;
 }
+
+export interface MoveListToBoardRequest {
+  listId: string;
+  newIndex: number;
+}

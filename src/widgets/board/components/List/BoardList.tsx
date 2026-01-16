@@ -5,12 +5,15 @@ import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
 import { CardInList } from "../Card/CardInList";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu/dropdown-menu";
 import { useListContext } from "@/features/providers/ListProvider";
+import { Draggable, Droppable } from "@hello-pangea/dnd";
 
 interface BoardListProps {
     list: List;
+    index: number;
+    isDraggingList: boolean;
 }
 
-export function BoardList({ list }: BoardListProps) {
+export function BoardList({ list, index, isDraggingList }: BoardListProps) {
     const [isAddingItem, setIsAddingItem] = useState(false);
     const [itemTitle, setItemTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,8 +76,19 @@ export function BoardList({ list }: BoardListProps) {
     const { cards, fetchCreateCard, addCardToState } = useCardDetailContext();
 
     const cardsInList = useMemo(() => {
-        return cards.filter(card => card && card.list_id === list.id);
-    }, [cards, list.id]);
+        const filtered = cards.filter(card => card && card.list_id === list.id);
+        
+        // Sort by position
+        const sorted = filtered.sort((a, b) => {
+            // If position field, sort by position
+            if (a.position !== undefined && b.position !== undefined) {
+                return a.position - b.position;
+            }
+            return 0;
+        });
+        
+        return sorted;
+    }, [cards, list.id, list.name]);
 
     const handleAddCard = async () => {   
         if (!itemTitle.trim() || isSubmitting) return;
@@ -110,109 +124,135 @@ export function BoardList({ list }: BoardListProps) {
     }
 
     return (
-        <div className="flex flex-col w-72 bg-gray-100 rounded-lg flex-shrink-0 shadow-md cursor-pointer">
-            {/* List Header */}
-            <div className="flex items-center justify-between p-3 m-4">
-                <h3 className="font-semibold text-sm text-gray-900">
-                    {isEditing ? (
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={listName}
-                            onChange={(e) => setListName(e.target.value)}
-                            onBlur={handleSaveName}
-                            onKeyDown={handleKeyDown}
-                            className="text-sm font-semibold text-gray-900 border px-2 py-1 focus:outline-none bg-white rounded-md"
-                            placeholder="Enter list name..."
-                        />
-                    ) : (
-                        <span onClick={handleEditName} className="text-sm font-semibold text-gray-900 cursor-pointer">{list.name}</span>
-                    )} 
-                </h3>
-                {/* Dropdown Menu */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <button className="p-1 hover:bg-gray-200 rounded transition-colors">
-                            <FiMoreHorizontal className="w-4 h-4 text-gray-600 rotate-90" />
-                        </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" sideOffset={8} className="w-48">
-                        <DropdownMenuItem 
-                            className="flex items-center gap-2 cursor-pointer"
-                            onClick={handleEditName}
-                        >
-                            <FiEdit className="w-4 h-4" />
-                            Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                            className="flex items-center gap-2 cursor-pointer text-red-600"
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                        >
-                            <FiTrash2 className="w-4 h-4" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-
-            {/* Card Items Container */}
-            <div className="overflow-y-auto px-3 pb-2 space-y-3 max-h-[calc(100vh-200px)] ml-4 mr-4">
-                {cardsInList.length > 0 ? (
-                    cardsInList.map((card) => (
-                        <CardInList
-                            key={card.id}
-                            card={card}
-                            listName={listName}
-                        />
-                    ))
-                ) : null}
-            </div>
-
-            {/* Add Item Section */}
-            <div className="p-2 ml-4 mr-4">
-                {isAddingItem ? (
-                    <div className="space-y-2">
-                        <input
-                            type="text"
-                            value={itemTitle}
-                            onChange={(e) => setItemTitle(e.target.value)}
-                            placeholder="Enter card title..."
-                            className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-shadow"
-                            autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") handleAddCard();
-                                if (e.key === "Escape") setIsAddingItem(false);
-                            }}
-                        />
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleAddCard}
-                                className="px-3 py-1.5 bg-black text-white text-sm rounded-md hover:bg-gray-800 transition-colors cursor-pointer font-semibold"
-                            >
-                                Add Card
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setItemTitle("");
-                                    setIsAddingItem(false);
-                                }}
-                                className="px-3 py-1.5 text-black text-sm hover:bg-gray-200 rounded-md transition-colors cursor-pointer font-semibold"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <button
-                        onClick={() => setIsAddingItem(true)}
-                        className="w-full flex items-center gap-2 p-2 text-sm text-gray-600 hover:bg-gray-200 rounded-md transition-colors cursor-pointer font-semibold mb-3"
+        <Draggable draggableId={list.id} index={index}>
+            {(provided, snapshot) => (
+                <div 
+                    className={`flex flex-col w-72 bg-gray-100 rounded-lg flex-shrink-0 shadow-md ${
+                        snapshot.isDragging ? 'rotate-2 shadow-2xl' : ''
+                    }`}
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                >
+                    {/* List Header - Drag handle */}
+                    <div 
+                        className="flex items-center justify-between p-3 m-4"
+                        {...provided.dragHandleProps}
                     >
-                        <FiPlus className="w-4 h-4" />
-                        Add a card
-                    </button>
-                )}
-            </div>
-        </div>
+                        <h3 className="font-semibold text-sm text-gray-900">
+                            {isEditing ? (
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={listName}
+                                    onChange={(e) => setListName(e.target.value)}
+                                    onBlur={handleSaveName}
+                                    onKeyDown={handleKeyDown}
+                                    className="text-sm font-semibold text-gray-900 border px-2 py-1 focus:outline-none bg-white rounded-md"
+                                    placeholder="Enter list name..."
+                                />
+                            ) : (
+                                <span onClick={handleEditName} className="text-sm font-semibold text-gray-900 cursor-pointer">
+                                    {list.name}
+                                </span>
+                            )} 
+                        </h3>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="p-1 hover:bg-gray-200 rounded transition-colors">
+                                    <FiMoreHorizontal className="w-4 h-4 text-gray-600 rotate-90" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" sideOffset={8} className="w-48">
+                                <DropdownMenuItem 
+                                    className="flex items-center gap-2 cursor-pointer"
+                                    onClick={handleEditName}
+                                >
+                                    <FiEdit className="w-4 h-4" />
+                                    Rename
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                    className="flex items-center gap-2 cursor-pointer text-red-600"
+                                    onClick={handleDelete}
+                                    disabled={isDeleting}
+                                >
+                                    <FiTrash2 className="w-4 h-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
+                    {/* Card Items Container - Droppable zone for cards */}
+                    <Droppable droppableId={list.id} type="card" isDropDisabled={isDraggingList}>
+                        {(provided, snapshot) => (
+                            <div 
+                                className={`overflow-y-auto px-3 pb-2 space-y-3 max-h-[calc(100vh-200px)] ml-4 mr-4 ${
+                                    snapshot.isDraggingOver ? 'bg-blue-50' : ''
+                                }`}
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                            >
+                                {cardsInList.length > 0 ? (
+                                    cardsInList.map((card, index) => (
+                                        <CardInList
+                                            key={card.id}
+                                            card={card}
+                                            listName={listName}
+                                            index={index}
+                                        />
+                                    ))
+                                ) : null}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+
+                    {/* Add Item Section */}
+                    <div className="p-2 ml-4 mr-4">
+                        {isAddingItem ? (
+                            <div className="space-y-2">
+                                <input
+                                    type="text"
+                                    value={itemTitle}
+                                    onChange={(e) => setItemTitle(e.target.value)}
+                                    placeholder="Enter card title..."
+                                    className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-shadow"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") handleAddCard();
+                                        if (e.key === "Escape") setIsAddingItem(false);
+                                    }}
+                                />
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleAddCard}
+                                        className="px-3 py-1.5 bg-black text-white text-sm rounded-md hover:bg-gray-800 transition-colors cursor-pointer font-semibold"
+                                    >
+                                        Add Card
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setItemTitle("");
+                                            setIsAddingItem(false);
+                                        }}
+                                        className="px-3 py-1.5 text-black text-sm hover:bg-gray-200 rounded-md transition-colors cursor-pointer font-semibold"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsAddingItem(true)}
+                                className="w-full flex items-center gap-2 p-2 text-sm text-gray-600 hover:bg-gray-200 rounded-md transition-colors cursor-pointer font-semibold mb-3"
+                            >
+                                <FiPlus className="w-4 h-4" />
+                                Add a card
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+        </Draggable>
     );
 }

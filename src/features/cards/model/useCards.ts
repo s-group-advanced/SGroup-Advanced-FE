@@ -12,6 +12,7 @@ import type {
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
   GetAllCommentsOfCardResponse,
+  MoveCardToListRequest,
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
@@ -137,6 +138,17 @@ export const useCards = () => {
     }
   };
 
+  // move card to list
+  const moveCardToList = async (request: MoveCardToListRequest) => {
+    try {
+      await cardApi.moveCardToList(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to move card to list: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllCardsOfBoard,
     createCard,
@@ -146,5 +158,6 @@ export const useCards = () => {
     unassignUserFromCard,
     createCommentOnCard,
     getAllCommentsOfCard,
+    moveCardToList,
   };
 };

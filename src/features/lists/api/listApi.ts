@@ -5,6 +5,7 @@ import type {
   DeleteListFromBoardRequest,
   GetAllListofBoardRequest,
   GetAllListofBoardResponse,
+  MoveListToBoardRequest,
   UpdateNameListRequest,
 } from "./type";
 import { fetchFactory } from "@/shared/api";
@@ -47,6 +48,15 @@ export const listApi = {
         request.boardId,
       ).replace("{listId}", request.listId),
       { archived: true },
+    );
+  },
+
+  // move list to board
+  moveListToBoard: (request: MoveListToBoardRequest) => {
+    const { listId, ...body } = request;
+    return fetchFactory.patch<void>(
+      ListEndpoint.MOVE_LIST_TO_BOARD.replace("{listId}", listId),
+      body,
     );
   },
 };

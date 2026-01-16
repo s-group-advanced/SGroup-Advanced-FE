@@ -104,7 +104,14 @@ export function HomeWidget() {
                                 <div className="flex flex-col gap-1">
                                     <div className="flex items-center">
                                         <FaBriefcase className="mr-2 w-6 h-6" />
-                                        <div className="text-lg font-semibold">{project.name}</div>
+                                        <Link 
+                                            key={project.id}
+                                            to={`/workspaces/${project.id}`}
+                                            className="text-lg font-semibold"
+                                        >
+                                            {project.name}
+                                        </Link>
+                                        {/* <div className="text-lg font-semibold">{project.name}</div> */}
                                         <span className="ml-2 text-xs text-gray-500">
                                             ({projectBoards.length} {projectBoards.length === 1 ? 'board' : 'boards'})
                                         </span>

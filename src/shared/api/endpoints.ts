@@ -48,12 +48,14 @@ export const API_ENDPOINTS = {
     GET_LABELS_OF_CARD: "/cards/{cardId}/labels",
     GET_AVAILABLE_LABELS_OF_BOARD: "/cards/{cardId}/labels/available",
     REMOVE_LABEL_FROM_CARD: "/cards/{cardId}/labels/{labelId}",
+    MOVE_CARD_TO_LIST: "/cards/{cardId}/move",
   },
   LIST: {
     GET_ALL_LISTS_OF_BOARD: "/boards/{boardId}/lists?archived=false",
     CREATE_LIST: "/boards/{boardId}/lists",
     UPDATE_NAME_LIST: "/boards/{boardId}/lists/{listId}",
     DELETE_LIST_FROM_BOARD: "/boards/{boardId}/lists/{listId}/archive",
+    MOVE_LIST_TO_BOARD: "/boards/lists/{listId}/reorder",
   },
   CHECKLIST: {
     GET_ALL_CHECKLISTS_OF_CARD: "/cards/{cardId}/checklists",

@@ -17,4 +17,5 @@ export type {
   CreateCommentOnCardResponse,
   GetAllCommentsOfCardRequest,
   GetAllCommentsOfCardResponse,
+  MoveCardToListRequest,
 } from "./api/type";

@@ -132,3 +132,9 @@ export interface GetAllCommentsOfCardResponse {
   created_at: string;
   author: User;
 }
+
+export interface MoveCardToListRequest {
+  targetListId: string;
+  newIndex: number;
+  cardId: string;
+}

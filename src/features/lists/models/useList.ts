@@ -5,6 +5,7 @@ import type {
   DeleteListFromBoardRequest,
   GetAllListofBoardRequest,
   GetAllListofBoardResponse,
+  MoveListToBoardRequest,
   UpdateNameListRequest,
 } from "../api/type";
 import { listApi } from "../api/listApi";
@@ -62,10 +63,22 @@ export const useLists = () => {
     }
   };
 
+  // move list to board
+  const moveListToBoard = async (request: MoveListToBoardRequest) => {
+    try {
+      await listApi.moveListToBoard(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to move list to board: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllListsOfBoard,
     createList,
     updateNameList,
     deleteListFromBoard,
+    moveListToBoard,
   };
 };

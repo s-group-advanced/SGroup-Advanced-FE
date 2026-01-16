@@ -12,6 +12,7 @@ import type {
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
   GetAllCommentsOfCardResponse,
+  MoveCardToListRequest,
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
@@ -90,6 +91,15 @@ export const cardApi = {
   ): Promise<GetAllCommentsOfCardResponse> => {
     return fetchFactory.get<GetAllCommentsOfCardResponse>(
       CardEndpoint.GET_ALL_COMMENTS_OF_CARD.replace("{cardId}", request.cardId),
+    );
+  },
+
+  // move card to list
+  moveCardToList: (request: MoveCardToListRequest) => {
+    const { cardId, ...body } = request;
+    return fetchFactory.patch<void>(
+      CardEndpoint.MOVE_CARD_TO_LIST.replace("{cardId}", cardId),
+      body,
     );
   },
 };
