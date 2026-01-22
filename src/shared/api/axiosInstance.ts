@@ -45,10 +45,7 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (
-      originalRequest.url?.includes(AuthEndpoint.LOGOUT) ||
-      originalRequest.url?.includes(AuthEndpoint.RENEW_TOKEN)
-    ) {
+    if (originalRequest.url?.includes(AuthEndpoint.RENEW_TOKEN)) {
       return Promise.reject(error);
     }
 
@@ -71,7 +68,7 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      await axios.post(
+      await apiClient.post(
         `${import.meta.env.VITE_API_BASE_URL}${AuthEndpoint.RENEW_TOKEN}`,
         {},
         {

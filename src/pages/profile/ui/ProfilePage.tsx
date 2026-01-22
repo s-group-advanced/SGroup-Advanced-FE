@@ -83,7 +83,7 @@ export function ProfilePage() {
             return;
         }
         
-        // check if there are any changes, if not, return
+        // check if there are any changes
         const hasNameChanged = fullName.trim() !== user?.name;
         const hasAvatarChanged = avatarUrl !== user?.avatar_url;
     
@@ -93,12 +93,21 @@ export function ProfilePage() {
         }
     
         try {
-            await handleUpdateProfile({
+            // Only send changed fields
+            const updateData: any = {
                 id: user.id,
-                name: fullName.trim(),
-                avatar_url: avatarUrl,
-            });
-
+            };
+    
+            if (hasNameChanged) {
+                updateData.name = fullName.trim();
+            }
+    
+            if (hasAvatarChanged) {
+                updateData.avatar_url = avatarUrl;
+            }
+    
+            await handleUpdateProfile(updateData);
+    
             console.log("avatarUrl", avatarUrl);
             console.log("fullName", fullName);
             

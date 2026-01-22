@@ -1,10 +1,12 @@
 import { useBoardContext } from "@/features/providers";
 import { DialogNewBoard } from "@/widgets/home/components/dialog/dialogNewBoard";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { BsPeople } from "react-icons/bs";
 import { FiPlus } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 import { BoardOptionsMenu } from "@/widgets/home/components/BoardOptionsMenu";
+import { useBoards } from "@/features/boards/index";
+import { toast } from "sonner";
 
 interface WorkspaceBoardProps {
     viewType?: 'grid' | 'list';
@@ -17,6 +19,8 @@ export function WorkspaceBoard({ viewType = 'grid', searchTerm = '', sortBy = ''
 
     const { boards } = useBoardContext();
     const { workspaceId } = useParams<{ workspaceId: string }>();
+    const [checkingAccess, setCheckingAccess] = useState(false);
+    const { getBoardById } = useBoards();
 
     const workspaceBoards = useMemo(() => {
         return boards.filter(board => board.workspaceId === workspaceId && board.name.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
@@ -31,8 +35,39 @@ export function WorkspaceBoard({ viewType = 'grid', searchTerm = '', sortBy = ''
     }, [boards, workspaceId, searchTerm, sortBy]);
 
 
-    const handleBoardClick = (boardId: string) => {
-        navigate(`/board/${boardId}`);
+    // Handler check access to board
+    const handleBoardClick = async (e: React.MouseEvent, boardId: string, boardName: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (checkingAccess) return;
+        setCheckingAccess(true);
+
+        try {
+            await getBoardById({ boardId });
+
+            navigate(`/board/${boardId}`);
+        } catch (err: any) {
+            console.error(`Failed to check access to board: ${err.message}`);
+
+            const status = err.status || err.statusCode;
+
+            if (status === 403 || status === 401) {
+                toast.error("Access denied", {
+                    description: `You are not a member of "${boardName}". Please contact the workspace owner to be invited.`,
+                    className: "bg-white border-gray-200",
+                    descriptionClassName: "text-black",
+                })
+            } else {
+                toast.error("Failed to check access to board", {
+                    description: `An error occurred while checking access to board. Please try again later. Error: ${err.message}`,
+                    className: "bg-white border-gray-200",
+                    descriptionClassName: "text-black",
+                })
+            }
+        } finally {
+            setCheckingAccess(false);
+        }
     }
 
     // List View
@@ -44,7 +79,7 @@ export function WorkspaceBoard({ viewType = 'grid', searchTerm = '', sortBy = ''
                     {workspaceBoards.map((board) => (
                         <div
                             key={board.id}
-                            onClick={() => handleBoardClick(board.id)}
+                            onClick={(e) => handleBoardClick(e, board.id, board.name)}
                             className="group flex items-center gap-4 border border-gray-200 rounded-lg p-6 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer bg-white"
                         >
                             {/* Icon */}
@@ -121,7 +156,7 @@ export function WorkspaceBoard({ viewType = 'grid', searchTerm = '', sortBy = ''
                 {workspaceBoards.map((board) => (
                     <div
                         key={board.id}
-                        onClick={() => handleBoardClick(board.id)}
+                        onClick={(e) => handleBoardClick(e, board.id, board.name)}
                         className="group flex flex-col gap-2 border border-gray-200 shadow-sm rounded-lg p-5 w-[calc(25%-12px)] hover:shadow-md transition-all duration-300 cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
