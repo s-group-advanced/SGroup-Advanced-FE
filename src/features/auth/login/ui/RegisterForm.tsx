@@ -10,6 +10,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/login/model/useAuth";
 import { useState } from "react";
 import type { ApiError } from "../api/type";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 export function RegisterForm({
   className,
   ...props
@@ -22,7 +24,7 @@ export function RegisterForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const navigate = useNavigate();
   async function handleRegister(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     try {
@@ -31,6 +33,8 @@ export function RegisterForm({
         return;
       }
       await register({ name, email, password });
+      navigate("/");
+      toast.success("Register successfully. Please check your email to verify your account.");
     } catch (err) {
       const apiError = err as ApiError;
       alert(apiError.message);
