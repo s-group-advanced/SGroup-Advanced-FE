@@ -1,7 +1,7 @@
 import { cn } from "@/shared/lib/utils";
 import type React from "react";
 import type { JSX } from "react";
-import { FaGoogle } from "react-icons/fa";
+import { FaEyeSlash, FaEye, FaGoogle } from "react-icons/fa";
 
 import { Button } from "@/shared/ui/button/button";
 import { Label } from "@/shared/ui/label/label";
@@ -24,6 +24,7 @@ function LoginForm({
   const { isLoading, login } = useAuth();
   const { refreshUser } = useUser();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
   
   async function submit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -80,13 +81,30 @@ function LoginForm({
             Forgot your password?
           </Link>
         </div>
-        <Input
-          id="password"
-          type="password"
-          className="bg-[#1E1E1E] text-white border-gray-600"
-          required
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            className="bg-[#1E1E1E] text-white border-gray-600 pr-10"
+            required
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          
+          {/* Icon show/hide - chỉ hiện khi có password */}
+          {password.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+            >
+              {showPassword ? (
+                <FaEyeSlash className="w-4 h-4" />
+              ) : (
+                <FaEye className="w-4 h-4" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Nút Đăng nhập */}

@@ -29,6 +29,7 @@ interface BoardContextType {
     closeEditDialog: () => void;
     fetchBoardsByWorkspace: (workspaceId: string) => Promise<void>;
     refreshBoard: (boardId: string) => Promise<void>;
+    clearBoards: () => void;
 }
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
@@ -59,6 +60,12 @@ export function BoardProvider({ children }: { children: ReactNode }) {
             console.error(`Failed to fetch board metadata: ${err}`);
             return { listsCount: 0, membersCount: 0 }
         }
+    }
+
+    const clearBoards = () => {
+        setBoards([]);
+        setSelectedBoard(null);
+        setIsEditDialogOpen(false);
     }
 
     // refresh boards
@@ -233,7 +240,8 @@ export function BoardProvider({ children }: { children: ReactNode }) {
                 createBoard,
                 closeEditDialog,
                 fetchBoardsByWorkspace,
-                refreshBoard
+                refreshBoard,
+                clearBoards
             }}
         >
             {children}

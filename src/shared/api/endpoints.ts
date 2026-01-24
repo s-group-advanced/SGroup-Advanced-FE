@@ -20,6 +20,9 @@ export const API_ENDPOINTS = {
   PROJECT: {
     GET_ALL_PROJECTS_OF_WORKSPACE: "/api/workspaces/my-workspaces",
     CREATE_WORKSPACE: "/api/workspaces/",
+    GET_ALL_MEMBER_OF_WORKSPACE_BUT_NOT_IN_WORKSPACE:
+      "/api/workspaces/{workspaceId}/available-users",
+    INVITE_MEMBER_TO_WORKSPACE: "/api/workspaces/members/{workspaceId}",
   },
   BOARD: {
     GET_BOARD_OF_WORKSPACE: "/boards",

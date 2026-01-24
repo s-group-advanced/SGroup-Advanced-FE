@@ -3,4 +3,6 @@ export type {
   Project,
   CreateWorkspaceRequest,
   CreateWorkspaceResponse,
+  GetAllMemberOfWorkspaceButNotInWorkspaceResponse,
+  InviteMemberToWorkspaceRequest,
 } from "./api/type";

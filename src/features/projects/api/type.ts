@@ -27,3 +27,16 @@ export interface CreateWorkspaceResponse {
   created_at: string;
   updated_at: string;
 }
+
+export interface GetAllMemberOfWorkspaceButNotInWorkspaceResponse {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url: string;
+  roles: string[];
+}
+
+export interface InviteMemberToWorkspaceRequest {
+  workspaceId: string;
+  email: string;
+}

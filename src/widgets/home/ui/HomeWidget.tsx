@@ -1,12 +1,10 @@
 import { FaBriefcase } from "react-icons/fa";
 import { BsPeople } from "react-icons/bs";
 import { DialogNewWorkspace, DialogNewBoard } from "../components/dialog/index";
-import { useProject } from "@/features/projects/model/useProject";
-import type { ApiError } from "@/features/auth/login/api/type";
-import type { Project } from "@/features/projects/api/type";
 import { useEffect, useState } from "react";
 import { BoardOptionsMenu } from "../components/BoardOptionsMenu";
 import { useBoardContext } from "@/features/providers/index"; 
+import { useWorkspaceContext } from "@/features/providers/WorkspaceProvider"; // ✅ Add this
 import { Link } from "react-router-dom";
 import { useBoards } from "@/features/boards/index";
 import { toast } from "sonner"
@@ -23,16 +21,15 @@ interface WorkspaceBoards {
 }
 
 export function HomeWidget() {
-    const { getAllProjectsOfUser } = useProject();
-    const { boards } = useBoardContext();  
+    const { projects, getAllProjectsOfUser, isLoading: isLoadingWorkspaces } = useWorkspaceContext();
+    const { boards, isLoading: isLoadingBoards } = useBoardContext();  
     const { getBoardById } = useBoards();
-    const [projects, setProjects] = useState<Project[]>([]);
     const [workspaceBoards, setWorkspaceBoards] = useState<WorkspaceBoards>({});
     const [checkingAccess, setCheckingAccess] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        handleGetAllProjectsOfUser();
+        getAllProjectsOfUser();
     }, []);
     
     useEffect(() => {
@@ -46,36 +43,13 @@ export function HomeWidget() {
             });
 
             setWorkspaceBoards(newWorkspaceBoards);
+        } else {
+            setWorkspaceBoards({});
         }
     }, [boards, projects]);
 
-    useEffect(() => {
-        if (boards.length > 0 && projects.length > 0) {
-            const newWorkspaceBoards: WorkspaceBoards = {};
-
-            projects.forEach(project => {
-                newWorkspaceBoards[project.id] = boards.filter(
-                    (board: any) => board.workspaceId === project.id
-                );
-            });
-
-            setWorkspaceBoards(newWorkspaceBoards);
-        }
-    }, [boards]);
-
-    const handleGetAllProjectsOfUser = async () => {
-        try {
-            const data = await getAllProjectsOfUser();
-            setProjects(data);
-        } catch (err) {
-            const apiError = err as ApiError;
-            alert(apiError.message);
-            setProjects([]);
-        }
-    };
-
     const handleWorkspaceCreated = () => {
-        handleGetAllProjectsOfUser();
+        getAllProjectsOfUser();
     };
 
     // Handler check access to board
@@ -112,6 +86,8 @@ export function HomeWidget() {
             setCheckingAccess(false);
         }
     }
+
+    const isLoading = isLoadingWorkspaces || isLoadingBoards;
     
     return (
         <div className="flex-1 overflow-y-auto">
@@ -135,7 +111,12 @@ export function HomeWidget() {
                 </div>
             </div>
 
-            {projects.length > 0 ? (
+
+            {isLoading ? (
+                <div className="flex justify-center items-center py-12">
+                    <div className="text-gray-500">Loading workspaces and boards...</div>
+                </div>
+            ) : projects.length > 0 ? (
                 projects.map((project) => {
                     const projectBoards = workspaceBoards[project.id] || [];
 
@@ -152,7 +133,6 @@ export function HomeWidget() {
                                         >
                                             {project.name}
                                         </Link>
-                                        {/* <div className="text-lg font-semibold">{project.name}</div> */}
                                         <span className="ml-2 text-xs text-gray-500">
                                             ({projectBoards.length} {projectBoards.length === 1 ? 'board' : 'boards'})
                                         </span>

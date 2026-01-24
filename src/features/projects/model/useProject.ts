@@ -1,6 +1,10 @@
 import type { ApiError } from "@/features/auth/login/api/type";
 import { projectApi } from "../api/projectApi";
-import type { CreateWorkspaceRequest, Project } from "../api/type";
+import type {
+  CreateWorkspaceRequest,
+  InviteMemberToWorkspaceRequest,
+  Project,
+} from "../api/type";
 import { useState } from "react";
 
 export const useProject = () => {
@@ -31,9 +35,46 @@ export const useProject = () => {
       throw apiError;
     }
   };
+
+  // get all member of workspace but not in workspace
+  const getAllMemberOfWorkspaceButNotInWorkspace = async (
+    workspaceId: string,
+  ) => {
+    try {
+      const response =
+        await projectApi.getAllMemberOfWorkspaceButNotInWorkspace(workspaceId);
+      if (!response)
+        throw new Error(
+          "Failed to get all member of workspace but not in workspace",
+        );
+      return response;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log(
+        `Failed to get all member of workspace but not in workspace: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // invite member to workspace
+  const inviteMemberToWorkspace = async (
+    request: InviteMemberToWorkspaceRequest,
+  ) => {
+    try {
+      await projectApi.inviteMemberToWorkspace(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log(`Failed to invite member to workspace: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     projects,
     getAllProjectsOfUser,
     createWorkspace,
+    getAllMemberOfWorkspaceButNotInWorkspace,
+    inviteMemberToWorkspace,
   };
 };

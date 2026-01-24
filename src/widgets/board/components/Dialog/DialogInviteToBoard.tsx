@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { GetAllMemberOfWorkspaceButNotInBoardResponse } from "@/features/boards/index";
 import { useBoardDetail } from "@/features/providers/index";
 import { useBoards } from "@/features/boards";
+import conKhiImg from "@/shared/assets/img/conKhi.jpg";
 
 interface DialogInviteToBoardProps {
     isOpen?: boolean;
@@ -78,7 +79,7 @@ export function DialogInviteToBoard({ isOpen, onOpenChange, triggerButton, board
                 invited_user_id: user.id,
             });
 
-            setInvitedUsers([...invitedUsers, user.email]);
+            setInvitedUsers([...invitedUsers, user.id]);
             onMembersInvited?.(user);
         } catch (err) {
             console.error(`Failed to invite user: ${err}`);
@@ -137,16 +138,19 @@ export function DialogInviteToBoard({ isOpen, onOpenChange, triggerButton, board
                             Quick Invite
                         </label>
                         <div className="space-y-2">
-                            {allMemberOfWorkspaceButNotInBoard.map((user) => (
+                        {allMemberOfWorkspaceButNotInBoard.map((user) => (
                                 <div
                                     key={user.id}
                                     className="flex items-center justify-between py-2"
                                 >
                                     <div className="flex items-center gap-3">
                                         <img
-                                            src={user.avatar_url}
+                                            src={user.avatar_url?.trim() || conKhiImg}
                                             alt={user.name}
-                                            className="w-10 h-10 rounded-full"
+                                            className="w-10 h-10 rounded-full object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.src = conKhiImg;
+                                            }}
                                         />
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">
@@ -161,9 +165,9 @@ export function DialogInviteToBoard({ isOpen, onOpenChange, triggerButton, board
                                         onClick={() => handleQuickInvite(user)}
                                         className="bg-black hover:bg-gray-800 text-white px-6"
                                         size="sm"
-                                        disabled={invitedUsers.includes(user.email || "") || isSubmitting}
+                                        disabled={invitedUsers.includes(user.id) || isSubmitting}
                                     >
-                                        {invitedUsers.includes(user.email || "") ? "Invited" : "Invite"}
+                                        {invitedUsers.includes(user.id) ? "Invited" : "Invite"}
                                     </Button>
                                 </div>
                             ))}

@@ -6,15 +6,21 @@ import type { ApiError } from "@/features/auth/login/api/type";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/features/providers/UserProvider";
+import { useWorkspaceContext } from "@/features/providers/WorkspaceProvider";
+import { useBoardContext } from "@/features/providers/BoardProvider";
 
 export function UserProfileMenu() {
     const { logout } = useAuth();
     const { user: userData, clearUser } = useUser();
     const navigate = useNavigate();
+    const { clearWorkspaces } = useWorkspaceContext();
+    const { clearBoards } = useBoardContext();
     
     const handleLogout = async () => {
         try {
             clearUser();
+            clearWorkspaces();
+            clearBoards();
             await logout();
         } catch (error) {
             const apiError = error as ApiError;
