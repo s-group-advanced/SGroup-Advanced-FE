@@ -9,6 +9,9 @@ import { Link } from "react-router-dom";
 import { useBoards } from "@/features/boards/index";
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom";
+import { ContextMenu, ContextMenuContent, ContextMenuItem } from "@/shared/ui/context-menu";
+import { ContextMenuTrigger } from "@radix-ui/react-context-menu";
+import { Badge } from "@/shared/ui/badge";
 
 interface WorkspaceBoards {
     [workspaceId: string]: {
@@ -21,7 +24,7 @@ interface WorkspaceBoards {
 }
 
 export function HomeWidget() {
-    const { projects, getAllProjectsOfUser, isLoading: isLoadingWorkspaces } = useWorkspaceContext();
+    const { projects, getAllProjectsOfUser, isLoading: isLoadingWorkspaces, handleToggleArchiveWorkspace } = useWorkspaceContext();
     const { boards, isLoading: isLoadingBoards } = useBoardContext();  
     const { getBoardById } = useBoards();
     const [workspaceBoards, setWorkspaceBoards] = useState<WorkspaceBoards>({});
@@ -88,6 +91,21 @@ export function HomeWidget() {
     }
 
     const isLoading = isLoadingWorkspaces || isLoadingBoards;
+
+    const handleToggleArchiveWorkspaceClick = async (workspaceId: string, workspaceName: string, isCurrentlyArchived: boolean) => {
+        try {
+            await handleToggleArchiveWorkspace({ workspaceId });
+            const action = isCurrentlyArchived ? "restored" : "archived";
+            toast.success(`Workspace "${workspaceName}" has been ${action}`, {
+                position: 'top-center'
+            })
+        } catch (err) {
+            toast.error("Failed to toggle archive workspace", {
+                description: `An error occurred. Please try again later.`,
+                position: 'top-center'
+            })
+        }
+    }
     
     return (
         <div className="flex-1 overflow-y-auto">
@@ -119,6 +137,7 @@ export function HomeWidget() {
             ) : projects.length > 0 ? (
                 projects.map((project) => {
                     const projectBoards = workspaceBoards[project.id] || [];
+                    const isArchived = project.archive || false;
 
                     return (
                         <div key={project.id} className="px-8 mb-8">
@@ -126,75 +145,106 @@ export function HomeWidget() {
                                 <div className="flex flex-col gap-1">
                                     <div className="flex items-center">
                                         <FaBriefcase className="mr-2 w-6 h-6" />
-                                        <Link 
-                                            key={project.id}
-                                            to={`/workspaces/${project.id}`}
-                                            className="text-lg font-semibold"
-                                        >
-                                            {project.name}
-                                        </Link>
-                                        <span className="ml-2 text-xs text-gray-500">
-                                            ({projectBoards.length} {projectBoards.length === 1 ? 'board' : 'boards'})
-                                        </span>
+
+                                        <ContextMenu>
+                                            <ContextMenuTrigger asChild>
+                                                {isArchived ? (
+                                                    <span className="text-lg font-semibold text-gray-400 cursor-not-allowed">
+                                                        {project.name}
+                                                    </span>
+                                                ) : (
+                                                    <Link 
+                                                        key={project.id}
+                                                        to={`/workspaces/${project.id}`}
+                                                        className="text-lg font-semibold"
+                                                    >
+                                                        {project.name}
+                                                    </Link>
+                                                )}
+                                            </ContextMenuTrigger>
+                                            <ContextMenuContent>
+                                                <ContextMenuItem onClick={() => handleToggleArchiveWorkspaceClick(project.id, project.name, isArchived)}>
+                                                    {isArchived ? "Restore Workspace" : "Archive Workspace"}
+                                                </ContextMenuItem>
+                                            </ContextMenuContent>
+                                        </ContextMenu>
+
+                                        {/* Badge for archived workspace */}
+                                        {isArchived && (
+                                            <Badge variant="secondary" className="text-xs">
+                                                Archived
+                                            </Badge>
+                                        )}
+                                        
+                                        {!isArchived && (
+                                            <span className="ml-2 text-xs text-gray-500">
+                                                ({projectBoards.length} {projectBoards.length === 1 ? 'board' : 'boards'})
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="text-sm text-gray-500">{project.description}</div>
                                 </div>
-                                <DialogNewBoard 
-                                    headerTitle="Create New Board" 
-                                    headerDescription="Create a new board to organize your project tasks and collaborate with your team."
-                                    workspaceId={project.id}
-                                    onBoardCreated={handleWorkspaceCreated}
-                                />
-                            </div>
 
-                            <div className="flex flex-wrap gap-4">
-                                {projectBoards.length === 0 ? (
-                                    <div className="text-sm text-gray-500 py-2">
-                                        No boards yet. Create a new board to get started!
-                                    </div>
-                                ) : (
-                                    projectBoards.map((board) => (
-                                        <div
-                                            key={board.id}
-                                            onClick={(e) => handleBoardClick(e, board.id, board.name)}
-                                            className={`group flex flex-col gap-2 border border-gray-200 shadow-sm rounded-lg p-5 w-[calc(25%-12px)] hover:shadow-md transition-all duration-300 ${
-                                                checkingAccess ? 'cursor-wait opacity-50' : 'cursor-pointer'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <svg 
-                                                    className="w-4 h-4 text-blue-600" 
-                                                    xmlns="http://www.w3.org/2000/svg" 
-                                                    width="24" 
-                                                    height="24" 
-                                                    viewBox="0 0 24 24" 
-                                                    fill="none" 
-                                                    stroke="currentColor" 
-                                                    strokeWidth="2" 
-                                                    strokeLinecap="round" 
-                                                    strokeLinejoin="round"
-                                                >
-                                                    <path d="M5 3v14"></path>
-                                                    <path d="M12 3v8"></path>
-                                                    <path d="M19 3v18"></path>
-                                                </svg>
-                                                <div className="text-md font-semibold text-gray-900">{board.name}</div>
-                                                <BoardOptionsMenu boardId={board.id} />
-                                            </div>
-                                            <div className="text-sm text-gray-500 min-h-[2.5rem]">{board.description}</div>
-                                            <div className="flex items-center justify-between mt-2">
-                                                <div className="text-sm text-gray-500">
-                                                    {board.listsCount || 0} {board.listsCount === 1 ? 'list' : 'lists'}
-                                                </div>
-                                                <div className="flex items-center gap-1 text-gray-500">
-                                                    <BsPeople className="w-4 h-4 text-gray-500" />
-                                                    <span className="text-sm">{board.membersCount || 0}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
+                                {!isArchived && (
+                                    <DialogNewBoard 
+                                        headerTitle="Create New Board" 
+                                        headerDescription="Create a new board to organize your project tasks and collaborate with your team."
+                                        workspaceId={project.id}
+                                        onBoardCreated={handleWorkspaceCreated}
+                                    />
                                 )}
                             </div>
+
+                                    {!isArchived && (
+                                        <div className="flex flex-wrap gap-4">
+                                            {projectBoards.length === 0 ? (
+                                                <div className="text-sm text-gray-500 py-2">
+                                                    No boards yet. Create a new board to get started!
+                                                </div>
+                                            ) : (
+                                                projectBoards.map((board) => (
+                                                <div
+                                                    key={board.id}
+                                                    onClick={(e) => handleBoardClick(e, board.id, board.name)}
+                                                    className={`group flex flex-col gap-2 border border-gray-200 shadow-sm rounded-lg p-5 w-[calc(25%-12px)] hover:shadow-md transition-all duration-300 ${
+                                                        checkingAccess ? 'cursor-wait opacity-50' : 'cursor-pointer'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <svg 
+                                                            className="w-4 h-4 text-blue-600" 
+                                                            xmlns="http://www.w3.org/2000/svg" 
+                                                            width="24" 
+                                                            height="24" 
+                                                            viewBox="0 0 24 24" 
+                                                            fill="none" 
+                                                            stroke="currentColor" 
+                                                            strokeWidth="2" 
+                                                            strokeLinecap="round" 
+                                                            strokeLinejoin="round"
+                                                        >
+                                                            <path d="M5 3v14"></path>
+                                                            <path d="M12 3v8"></path>
+                                                            <path d="M19 3v18"></path>
+                                                        </svg>
+                                                        <div className="text-md font-semibold text-gray-900">{board.name}</div>
+                                                        <BoardOptionsMenu boardId={board.id} />
+                                                    </div>
+                                                    <div className="text-sm text-gray-500 min-h-[2.5rem]">{board.description}</div>
+                                                    <div className="flex items-center justify-between mt-2">
+                                                        <div className="text-sm text-gray-500">
+                                                            {board.listsCount || 0} {board.listsCount === 1 ? 'list' : 'lists'}
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-gray-500">
+                                                            <BsPeople className="w-4 h-4 text-gray-500" />
+                                                            <span className="text-sm">{board.membersCount || 0}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
                         </div>
                     );
                 })

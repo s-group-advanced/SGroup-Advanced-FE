@@ -23,11 +23,13 @@ export function SideBar() {
 
     // Compute workspaces với board count từ boards Context
     const workspacesWithCount = useMemo<WorkspaceWithBoardCount[]>(() => {
-        return projects.map(project => ({
-            ...project,
-            boardCount: boards.filter(b => b.workspaceId === project.id).length
-        }));
-    }, [projects, boards]);
+        return projects
+            .filter(project => !project.archive)
+            .map(project => ({
+                ...project,
+                boardCount: boards.filter(b => b.workspaceId === project.id).length
+            }));
+        }, [projects, boards]);
 
     const toggleWorkspace = (workspaceId: string) => {
         setExpandedWorkspaces(prev => 
@@ -91,7 +93,7 @@ export function SideBar() {
 
                     {/* Workspaces List */}
                     <div className="mb-1">
-                        {projects.length === 0 ? (
+                        {workspacesWithCount.length === 0 ? (
                             <div className="text-xs text-gray-400 px-2 py-1">No workspaces</div>
                         ) : (
                             workspacesWithCount.map((workspace) => {

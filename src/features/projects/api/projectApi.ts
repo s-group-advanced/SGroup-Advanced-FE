@@ -1,6 +1,7 @@
 import { fetchFactory } from "@/shared/api";
 import { ProjectEndpoint } from "@/shared/api/endpoints";
 import type {
+  ArchiveWorkspaceRequest,
   CreateWorkspaceRequest,
   CreateWorkspaceResponse,
   GetAllMemberOfWorkspaceButNotInWorkspaceResponse,
@@ -48,6 +49,16 @@ export const projectApi = {
       {
         email,
       },
+    );
+  },
+
+  // archive workspace
+  archiveWorkspace: (request: ArchiveWorkspaceRequest) => {
+    return fetchFactory.patch<void>(
+      ProjectEndpoint.ARCHIVE_WORKSPACE.replace(
+        "{workspaceId}",
+        request.workspaceId,
+      ),
     );
   },
 };

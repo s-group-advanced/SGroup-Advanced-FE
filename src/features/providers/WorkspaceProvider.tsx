@@ -1,7 +1,7 @@
 // src/features/projects/model/ProjectProvider.tsx
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { projectApi } from "../projects/api/projectApi";
-import type { InviteMemberToWorkspaceRequest, Project } from "../projects/api/type";
+import type { ArchiveWorkspaceRequest, InviteMemberToWorkspaceRequest, Project } from "../projects/api/type";
 import type { GetAllMemberOfWorkspaceButNotInWorkspaceResponse } from "../projects/index";
 
 interface WorkspaceContextType {
@@ -11,6 +11,7 @@ interface WorkspaceContextType {
     clearWorkspaces: () => void;
     fetchAllMemberOfWorkspaceButNotInWorkspace: (workspaceId: string) => Promise<GetAllMemberOfWorkspaceButNotInWorkspaceResponse[]>;
     handleInviteMemberToWorkspace: (request: InviteMemberToWorkspaceRequest) => Promise<void>;
+    handleToggleArchiveWorkspace: (request: ArchiveWorkspaceRequest) => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -23,6 +24,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setIsLoading(true);
         try {
             const response = await projectApi.getAllProjectsOfUser();
+            console.log(`getAllProjectsOfUser: ${JSON.stringify(response)}`);
             if (response) {
                 setProjects(response);
             }
@@ -66,13 +68,31 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    // archive workspace
+    const handleToggleArchiveWorkspace = async (request: ArchiveWorkspaceRequest) => {
+        try {
+            await projectApi.archiveWorkspace(request);
+            setProjects(prev => 
+                prev.map(p => 
+                    p.id === request.workspaceId 
+                        ? { ...p, archive: !p.archive }
+                        : p
+                )
+            );
+        } catch (err) {
+            console.error(`Failed to archive workspace: ${err}`);
+            throw err;
+        }
+    }
+
     const value: WorkspaceContextType = {
         projects,
         isLoading,
         getAllProjectsOfUser,
         clearWorkspaces,
         fetchAllMemberOfWorkspaceButNotInWorkspace,
-        handleInviteMemberToWorkspace
+        handleInviteMemberToWorkspace,
+        handleToggleArchiveWorkspace
     }
 
     return (

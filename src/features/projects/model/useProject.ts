@@ -1,6 +1,7 @@
 import type { ApiError } from "@/features/auth/login/api/type";
 import { projectApi } from "../api/projectApi";
 import type {
+  ArchiveWorkspaceRequest,
   CreateWorkspaceRequest,
   InviteMemberToWorkspaceRequest,
   Project,
@@ -70,11 +71,23 @@ export const useProject = () => {
     }
   };
 
+  // archive workspace
+  const archiveWorkspace = async (request: ArchiveWorkspaceRequest) => {
+    try {
+      await projectApi.archiveWorkspace(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log(`Failed to archive workspace: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     projects,
     getAllProjectsOfUser,
     createWorkspace,
     getAllMemberOfWorkspaceButNotInWorkspace,
     inviteMemberToWorkspace,
+    archiveWorkspace,
   };
 };

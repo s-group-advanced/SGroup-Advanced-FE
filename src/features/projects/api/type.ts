@@ -12,6 +12,7 @@ export interface Project {
   boards: Board[];
   createdAt: string;
   updatedAt: string;
+  archive?: boolean;
 }
 
 export interface CreateWorkspaceRequest {
@@ -39,4 +40,8 @@ export interface GetAllMemberOfWorkspaceButNotInWorkspaceResponse {
 export interface InviteMemberToWorkspaceRequest {
   workspaceId: string;
   email: string;
+}
+
+export interface ArchiveWorkspaceRequest {
+  workspaceId: string;
 }

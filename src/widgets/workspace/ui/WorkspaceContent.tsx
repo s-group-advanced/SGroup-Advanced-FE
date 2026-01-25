@@ -1,9 +1,10 @@
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { useWorkspaceContext } from "@/features/providers/WorkspaceProvider";
 import { useBoardContext } from "@/features/providers/BoardProvider";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BoardFilter } from "../components/BoardFilter";
 import { WorkspaceBoard } from "../components/WorkspaceBoard";
+import { toast } from "sonner";
 
 export function WorkspaceContent() {
     const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -12,10 +13,30 @@ export function WorkspaceContent() {
     const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('most-recent');
+    const navigate = useNavigate();
     
     // Find current workspace
     const currentWorkspace = projects.find(project => project.id === workspaceId);
     
+    // Check if workspace is archived
+    useEffect(() => {
+        if (currentWorkspace && currentWorkspace.archive) {
+            toast.error("Workspace Archived", {
+                description: "This workspace has been archived and is no longer accessible.",
+                position: "top-center",
+            });
+            navigate("/home", { replace: true });
+        }
+    }, [currentWorkspace, navigate]);
+
+    // If workspace does not exist or is archived, do not render anything
+    if (!currentWorkspace || currentWorkspace.archive) {
+        return (
+            <div className="flex-1 flex items-center justify-center">
+                <div className="text-gray-500">Loading workspace...</div>
+            </div>
+        );
+    }
     // Filter boards của workspace này
     const workspaceBoards = useMemo(() => {
         return boards.filter(board => board.workspaceId === workspaceId);
