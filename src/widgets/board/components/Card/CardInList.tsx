@@ -3,6 +3,7 @@ import { useState } from "react";
 import { DialogCardToList } from "../Dialog/DialogCardToList";
 import { CardMemberAvatars } from "./CardMemberAvatars";
 import { Draggable } from "@hello-pangea/dnd";
+import { formatDDMMYYYY } from "@/shared/utils/formatDDMMYYYY";
 
 interface CardInListProps {
     card: Card;
@@ -12,6 +13,16 @@ interface CardInListProps {
 
 export function CardInList({ card, listName, index }: CardInListProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const statusColor = 
+        card.status === 'complete' 
+        ? "text-green-600" 
+        : card.status === 'overdue' 
+        ? "text-red-600" : card.is_completed 
+        ? "text-green-600" 
+        : card.status === "due soon" 
+        ? "text-yellow-600"
+        : "text-gray-500";
 
     return (
         <>
@@ -41,6 +52,19 @@ export function CardInList({ card, listName, index }: CardInListProps) {
                     <div className="flex items-center gap-2 mb-3">
                         <CardMemberAvatars card={card} maxDisplay={2} />
                     </div>
+
+                    {card.end_date && (
+                        <div className="flex items-center justify-between mt-1">
+                            <span className={`text-xs font-semibold ${statusColor}`}>
+                            {formatDDMMYYYY(card.end_date)}
+                            </span>
+                            <span className={`text-[11px] font-semibold ${statusColor}`}>
+                                {card.status
+                                    ? card.status.charAt(0).toUpperCase() + card.status.slice(1)
+                                    : ""}
+                            </span>
+                        </div>
+                        )}
                 </div>
             )}
         </Draggable>

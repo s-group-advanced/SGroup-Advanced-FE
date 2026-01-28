@@ -16,6 +16,8 @@ import type {
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
+  UpdateDueDateOfCardRequest,
+  UpdateDueDateOfCardResponse,
 } from "../api/type";
 import { cardApi } from "../api/cardApi";
 
@@ -149,6 +151,21 @@ export const useCards = () => {
     }
   };
 
+  // update due date of card
+  const updateDueDateOfCard = async (
+    request: UpdateDueDateOfCardRequest,
+  ): Promise<UpdateDueDateOfCardResponse> => {
+    try {
+      const data = await cardApi.updateDueDateOfCard(request);
+      if (!data) throw new Error("Failed to update due date of card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to update due date of card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllCardsOfBoard,
     createCard,
@@ -159,5 +176,6 @@ export const useCards = () => {
     createCommentOnCard,
     getAllCommentsOfCard,
     moveCardToList,
+    updateDueDateOfCard,
   };
 };

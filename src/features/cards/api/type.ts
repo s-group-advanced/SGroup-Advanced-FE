@@ -21,6 +21,7 @@ export interface Card {
   checklists: any[];
   cardMembers: CardMember[];
   assigned_users: AssignedUser[];
+  status: string;
 }
 
 interface CardMember {
@@ -137,4 +138,14 @@ export interface MoveCardToListRequest {
   targetListId: string;
   newIndex: number;
   cardId: string;
+}
+
+export interface UpdateDueDateOfCardRequest {
+  cardId: string;
+  end_date?: string;
+  is_completed?: boolean;
+}
+
+export interface UpdateDueDateOfCardResponse {
+  card: Card;
 }

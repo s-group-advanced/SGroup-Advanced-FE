@@ -16,6 +16,8 @@ import type {
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
+  UpdateDueDateOfCardRequest,
+  UpdateDueDateOfCardResponse,
 } from "./type";
 import { CardEndpoint } from "@/shared/api/endpoints";
 
@@ -99,6 +101,17 @@ export const cardApi = {
     const { cardId, ...body } = request;
     return fetchFactory.patch<void>(
       CardEndpoint.MOVE_CARD_TO_LIST.replace("{cardId}", cardId),
+      body,
+    );
+  },
+
+  // update due date of card
+  updateDueDateOfCard: (
+    request: UpdateDueDateOfCardRequest,
+  ): Promise<UpdateDueDateOfCardResponse> => {
+    const { cardId, ...body } = request;
+    return fetchFactory.patch<UpdateDueDateOfCardResponse>(
+      CardEndpoint.UPDATE_DUE_DATE_OF_CARD.replace("{cardId}", cardId),
       body,
     );
   },

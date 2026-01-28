@@ -18,4 +18,6 @@ export type {
   GetAllCommentsOfCardRequest,
   GetAllCommentsOfCardResponse,
   MoveCardToListRequest,
+  UpdateDueDateOfCardRequest,
+  UpdateDueDateOfCardResponse,
 } from "./api/type";

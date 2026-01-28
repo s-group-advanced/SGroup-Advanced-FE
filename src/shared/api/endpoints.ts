@@ -53,6 +53,7 @@ export const API_ENDPOINTS = {
     GET_AVAILABLE_LABELS_OF_BOARD: "/cards/{cardId}/labels/available",
     REMOVE_LABEL_FROM_CARD: "/cards/{cardId}/labels/{labelId}",
     MOVE_CARD_TO_LIST: "/cards/{cardId}/move",
+    UPDATE_DUE_DATE_OF_CARD: "/cards/{cardId}/due-date",
   },
   LIST: {
     GET_ALL_LISTS_OF_BOARD: "/boards/{boardId}/lists?archived=false",

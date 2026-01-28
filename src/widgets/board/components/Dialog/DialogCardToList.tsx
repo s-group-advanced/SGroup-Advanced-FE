@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { FiX, FiUserPlus, FiTrash2 } from "react-icons/fi";
+import { FiX, FiTrash2 } from "react-icons/fi";
 import type { Card } from "@/features/cards/index";
 import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
@@ -12,6 +12,9 @@ import { AddTagToCard } from "./AddTagToCard";
 import { useLabels } from "@/features/labels/index";
 import { TAG_COLORS } from "@/shared/constants/tagColors";
 import { DialogChecklist } from "./DialogChecklist";
+import { DueDateToCard } from "./DueDateToCard";
+import { formatDDMMYYYY } from "@/shared/utils/formatDDMMYYYY";
+import { Checkbox } from "@/shared/ui/checkbox/index";
 
 interface DialogCardToListProps {
     isOpen?: boolean;
@@ -26,15 +29,37 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const { membersOfBoard } = useBoardDetail();
+    const [dueTime, setDueTime] = useState<string>("00:00");
 
     const { getLabelsOfCard } = useLabels();
     const [cardLabels, setCardLabels] = useState<any[]>([]);
+
+    const { 
+        fetchDeleteCard, 
+        removeCardFromState, 
+        fetchUpdateCard, 
+        updateCardInState, 
+        handleAssignUserToCard, 
+        handleUnassignUserFromCard ,
+        handleUpdateDueDateOfCard
+    } = useCardDetailContext();
 
     useEffect(() => {
         if (card.id) {
             fetchCardLabels();
         }
     }, [card.id]);
+
+    useEffect(() => {
+        if (card.end_date) {
+            const d = new Date(card.end_date);
+            const hh = d.getHours().toString().padStart(2, '0');
+            const mm = d.getMinutes().toString().padStart(2, '0');
+            setDueTime(`${hh}:${mm}`);
+        } else {
+            setDueTime("00:00");
+        }
+    }, [card.end_date]);
 
     const fetchCardLabels = async () => {
         try {
@@ -45,14 +70,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
             console.error(`Failed to fetch card labels: ${err}`);
         }
     }
-    const { 
-            fetchDeleteCard, 
-            removeCardFromState, 
-            fetchUpdateCard, 
-            updateCardInState, 
-            handleAssignUserToCard, 
-            handleUnassignUserFromCard 
-        } = useCardDetailContext();
+    
 
     console.log("isUpdating", isUpdating);
 
@@ -199,6 +217,115 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
         onOpenChange?.(false);
     };
 
+    // update due date of card
+    const handleDateSelect = async (selectedDate?: Date) => {
+        if (!selectedDate) {
+            updateCardInState(card.id, { 
+                end_date: undefined,
+            });
+    
+            try {
+                const response = await handleUpdateDueDateOfCard({ 
+                    cardId: card.id, 
+                    end_date: undefined 
+                });
+                console.log("response", response);
+            } catch (err) {
+                console.error("Failed to update due date: ", err);
+                if (card.end_date) {
+                    updateCardInState(card.id, { 
+                        end_date: card.end_date, 
+                        status: card.status 
+                    });
+                }
+            }
+            return;
+        }
+    
+        const [hours, minutes] = dueTime.split(':').map(Number);
+        const newDate = new Date(selectedDate);
+        newDate.setHours(hours || 0, minutes || 0, 0, 0);
+        const newIsoDate = newDate.toISOString();
+    
+        updateCardInState(card.id, { 
+            end_date: newIsoDate,
+        });
+    
+        try {
+            const response = await handleUpdateDueDateOfCard({ 
+                cardId: card.id, 
+                end_date: newIsoDate 
+            });
+            console.log("response update due date", response);
+        } catch (err) {
+            console.error("Failed to update due date: ", err);
+            if (card.end_date) {
+                updateCardInState(card.id, { 
+                    end_date: card.end_date, 
+                    status: card.status 
+                });
+            } else {
+                updateCardInState(card.id, { 
+                    end_date: undefined,
+                    status: undefined 
+                });
+            }
+        }
+    }
+
+    const handleTimeBlur = async (newTime: string) => {
+        if (!card.end_date) return;
+    
+        setDueTime(newTime);
+    
+        const dateObj = new Date(card.end_date);
+        const [hours, minutes] = newTime.split(':').map(Number);
+        dateObj.setHours(hours || 0, minutes || 0, 0, 0);
+        
+        const newIsoDate = dateObj.toISOString();
+    
+        // if time is not changed, return
+        if (newIsoDate === card.end_date) return;
+    
+        updateCardInState(card.id, { 
+            end_date: newIsoDate,
+        });
+    
+        try {
+            await handleUpdateDueDateOfCard({ 
+                cardId: card.id, 
+                end_date: newIsoDate 
+            });
+        } catch (err) {
+            console.error("Failed time update: ", err);
+            const d = new Date(card.end_date);
+            const hh = d.getHours().toString().padStart(2, '0');
+            const mm = d.getMinutes().toString().padStart(2, '0');
+            setDueTime(`${hh}:${mm}`);
+            updateCardInState(card.id, { 
+                end_date: card.end_date,
+                status: card.status 
+            });
+        }
+    }
+
+    const handleMarkAsCompleted = async (checked: boolean) => {
+        const isCompleted = checked === true ? true : false;
+        const previousIsCompleted = card.is_completed;
+
+        updateCardInState(card.id, { 
+            is_completed: isCompleted 
+        });
+
+        try {
+            await handleUpdateDueDateOfCard({ cardId: card.id, end_date: card.end_date, is_completed: isCompleted });
+        } catch (err) {
+            console.error("Failed to mark as completed: ", err);
+            updateCardInState(card.id, { 
+                is_completed: previousIsCompleted 
+            });
+        }
+    }
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -223,10 +350,16 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                             onTagAdded={fetchCardLabels}
                         />
                         <DialogChecklist card={card} />
-                        <button className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-semibold shadow-md border-gray-300">
-                            <FiUserPlus className="w-4 h-4" />
-                            Add member
-                        </button>
+                        {/* Due date */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                {/* nút mở calendar */}
+                                <DueDateToCard 
+                                    value={card.end_date ? new Date(card.end_date) : undefined}
+                                    onChange={handleDateSelect}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Title */}
@@ -256,7 +389,49 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                             onBlur={handleDescriptionBlur}
                         />
                     </div>
+                    
+                    {/* Due date */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-900">
+                            Due date
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600 font-semibold">
+                                {card.end_date ? formatDDMMYYYY(card.end_date) : "No due date"}
+                            </span> 
+                            {/* nếu đã có ngày thì cho nhập giờ:phút */}
+                            {card.end_date && (
+                                <input
+                                    type="time"
+                                    value={dueTime}
+                                    onChange={(e) => setDueTime(e.target.value)}
+                                    onBlur={(e) => handleTimeBlur(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                                />
+                            )}
+                            
+                            {/* tags status */}
+                            <div className="flex items-center gap-2">
+                                <span className={`text-sm font-semibold ${
+                                    card.status === 'overdue' ? 'text-red-600' : 
+                                    card.status === 'complete' ? 'text-green-600' : 
+                                    card.status === 'due soon' ? 'text-yellow-600' : 
+                                    'text-gray-600'
+                                }`}>
+                                    {card.status ? card.status.charAt(0).toUpperCase() + card.status.slice(1) : "No status"}
+                                </span>
+                            </div>
 
+                            {/* checkbox  */}
+                            <div className="flex items-center gap-2">
+                                <Checkbox 
+                                    checked={card.is_completed}
+                                    onCheckedChange={handleMarkAsCompleted}
+                                />
+                                <span className="text-sm font-semibold">Mark as completed</span>
+                            </div>
+                        </div>
+                    </div>
                     {/* Labels */}
                     {cardLabels && cardLabels.length > 0 && (
                         <div className="space-y-2">

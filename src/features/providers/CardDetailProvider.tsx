@@ -1,4 +1,4 @@
-import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest } from "@/features/cards/api/type";
+import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse } from "@/features/cards/api/type";
 import { type Card, type GetAllCardsOfBoardResponse, type GetAllCardsOfBoardRequest, useCards, type CreateCardRequest, type CreateCardResponse, type DeleteCardResponse, type DeleteCardRequest } from "@/features/cards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -22,6 +22,7 @@ interface CardDetailContextType {
     handleCreateCommentOnCard: (request: CreateCommentOnCardRequest) => Promise<CreateCommentOnCardResponse>;
     handleGetAllCommentsOfCard: (request: GetAllCommentsOfCardRequest) => Promise<GetAllCommentsOfCardResponse>;
     handleMoveCardToList: (request: MoveCardToListRequest) => Promise<void>;
+    handleUpdateDueDateOfCard: (request: UpdateDueDateOfCardRequest) => Promise<UpdateDueDateOfCardResponse>;
 }
 
 const CardDetailContext = createContext<CardDetailContextType | undefined>(undefined);
@@ -32,7 +33,7 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const { getAllCardsOfBoard, createCard, deleteCard, updateCard, assignUserToCard, unassignUserFromCard, createCommentOnCard, getAllCommentsOfCard, moveCardToList } = useCards();
+    const { getAllCardsOfBoard, createCard, deleteCard, updateCard, assignUserToCard, unassignUserFromCard, createCommentOnCard, getAllCommentsOfCard, moveCardToList, updateDueDateOfCard } = useCards();
 
     // get data from api
     useEffect(() => {
@@ -169,69 +170,120 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
     }
 
     // move card to list
-const handleMoveCardToList = async (request: MoveCardToListRequest) => {
-    const oldCards = [...cards];
-    
-    try {
+    const handleMoveCardToList = async (request: MoveCardToListRequest) => {
+        const oldCards = [...cards];
         
-        // Optimistic update
-        setCards(prevCards => {
-            const newCards = [...prevCards];
+        try {
             
-            // Find card to move
-            const cardIndex = newCards.findIndex(c => c.id === request.cardId);
-            if (cardIndex === -1) {
-                return prevCards;
-            }
+            // Optimistic update
+            setCards(prevCards => {
+                const newCards = [...prevCards];
+                
+                // Find card to move
+                const cardIndex = newCards.findIndex(c => c.id === request.cardId);
+                if (cardIndex === -1) {
+                    return prevCards;
+                }
+                
+                // Get card out
+                const [movedCard] = newCards.splice(cardIndex, 1);
+                
+                // Get all cards in target list (sorted by position)
+                const cardsInTargetList = newCards
+                    .filter(c => c.list_id === request.targetListId)
+                    .sort((a, b) => a.position - b.position);
+                
+                // Calculate new position for card 
+                let newPosition: number;
+                
+                if (cardsInTargetList.length === 0) {
+                    // Empty list - position = 0
+                    newPosition = 0;
+                } else if (request.newIndex === 0) {
+                    // Insert at the beginning - position smaller than first card
+                    newPosition = cardsInTargetList[0].position - 1;
+                } else if (request.newIndex >= cardsInTargetList.length) {
+                    // Insert at the end - position greater than last card
+                    newPosition = cardsInTargetList[cardsInTargetList.length - 1].position + 1;
+                } else {
+                    // Insert in the middle - position = average of 2 cards
+                    const prevCard = cardsInTargetList[request.newIndex - 1];
+                    const nextCard = cardsInTargetList[request.newIndex];
+                    newPosition = (prevCard.position + nextCard.position) / 2;
+                }
+                
+                // Update card
+                movedCard.list_id = request.targetListId;
+                movedCard.position = newPosition;
+                
+                // Add card to array
+                newCards.push(movedCard);
+                
+                return newCards;
+            });
             
-            // Get card out
-            const [movedCard] = newCards.splice(cardIndex, 1);
+            await moveCardToList(request);
             
-            // Get all cards in target list (sorted by position)
-            const cardsInTargetList = newCards
-                .filter(c => c.list_id === request.targetListId)
-                .sort((a, b) => a.position - b.position);
+        } catch (err) {
+            console.error("Failed:", err);
+            setError("Failed to move card to list");
             
-            // Calculate new position for card 
-            let newPosition: number;
-            
-            if (cardsInTargetList.length === 0) {
-                // Empty list - position = 0
-                newPosition = 0;
-            } else if (request.newIndex === 0) {
-                // Insert at the beginning - position smaller than first card
-                newPosition = cardsInTargetList[0].position - 1;
-            } else if (request.newIndex >= cardsInTargetList.length) {
-                // Insert at the end - position greater than last card
-                newPosition = cardsInTargetList[cardsInTargetList.length - 1].position + 1;
-            } else {
-                // Insert in the middle - position = average of 2 cards
-                const prevCard = cardsInTargetList[request.newIndex - 1];
-                const nextCard = cardsInTargetList[request.newIndex];
-                newPosition = (prevCard.position + nextCard.position) / 2;
-            }
-            
-            // Update card
-            movedCard.list_id = request.targetListId;
-            movedCard.position = newPosition;
-            
-            // Add card to array
-            newCards.push(movedCard);
-            
-            return newCards;
-        });
-        
-        await moveCardToList(request);
-        
-    } catch (err) {
-        console.error("Failed:", err);
-        setError("Failed to move card to list");
-        
-        // Rollback
-        setCards(oldCards);
-        throw err;
+            // Rollback
+            setCards(oldCards);
+            throw err;
+        }
     }
-}
+
+    // update due date of card
+    const handleUpdateDueDateOfCard = async (
+        request: UpdateDueDateOfCardRequest
+      ): Promise<UpdateDueDateOfCardResponse> => {
+        const prevCard = cards.find((c) => c.id === request.cardId);
+      
+        try {
+          const data: any = await updateDueDateOfCard(request);
+          const updatedCard = data?.card ?? data ?? {};
+      
+          if (!prevCard && (!updatedCard || typeof updatedCard !== "object")) {
+            throw new Error("Invalid updateDueDateOfCard response");
+          }
+      
+          const end_date =
+            updatedCard.end_date !== undefined
+              ? updatedCard.end_date
+              : prevCard?.end_date;
+      
+          const status =
+            updatedCard.status !== undefined
+              ? updatedCard.status
+              : prevCard?.status;
+      
+          const is_completed =
+            typeof updatedCard.is_completed === "boolean"
+              ? updatedCard.is_completed
+              : prevCard?.is_completed;
+      
+          updateCardInState(request.cardId, {
+            end_date,
+            status,
+            is_completed,
+          });
+      
+          return {
+            card: {
+              ...(prevCard || {}),
+              ...(typeof updatedCard === "object" ? updatedCard : {}),
+              end_date,
+              status,
+              is_completed,
+            } as any,
+          };
+        } catch (err) {
+          console.error("Failed: ", err);
+          setError("Failed to update due date of card");
+          throw err;
+        }
+      };
 
     const value: CardDetailContextType = {
         cards,
@@ -249,6 +301,7 @@ const handleMoveCardToList = async (request: MoveCardToListRequest) => {
         handleCreateCommentOnCard,
         handleGetAllCommentsOfCard,
         handleMoveCardToList,
+        handleUpdateDueDateOfCard,
     }
 
     return (
