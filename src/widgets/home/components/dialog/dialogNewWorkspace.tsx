@@ -15,6 +15,7 @@ import { Input } from "@/shared/ui/input/input";
 import { useState } from "react";
 import { useProject } from "@/features/projects";
 import type { ApiError } from "@/shared/api/fetchFactory";
+import { toast } from "sonner";
 
 interface DialogNewWorkspaceProps {
   onWorkspaceCreated?: () => void;  // Callback để refresh danh sách
@@ -52,15 +53,19 @@ export function DialogNewWorkspace({ onWorkspaceCreated }: DialogNewWorkspacePro
       setIsOpen(false);
 
       // Hiển thị thông báo thành công
-      alert(`Workspace "${newWorkspace.name}" created successfully!`);
-
+      toast.success(`Workspace "${newWorkspace.name}" created successfully!`, {
+        position: "top-center",
+      });
+      
       // Gọi callback để refresh danh sách
       if (onWorkspaceCreated) {
         onWorkspaceCreated();
       }
     } catch (error) {
       const apiError = error as ApiError;
-      alert(apiError.message || "Failed to create workspace");
+      toast.error(apiError.message || "Failed to create workspace", {
+        position: "top-center",
+      });
       console.error("Error creating workspace:", error);
     } finally {
       setIsLoading(false);

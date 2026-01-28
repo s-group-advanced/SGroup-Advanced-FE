@@ -71,7 +71,7 @@ import {
                 await updateBoard({
                     boardId: selectedBoard.id,
                     name: boardTitle.trim(),
-                    description: description.trim() || undefined,
+                    description: description,
                 });
                 closeEditDialog();
             } else {

@@ -15,6 +15,7 @@ import { DialogChecklist } from "./DialogChecklist";
 import { DueDateToCard } from "./DueDateToCard";
 import { formatDDMMYYYY } from "@/shared/utils/formatDDMMYYYY";
 import { Checkbox } from "@/shared/ui/checkbox/index";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/shared/ui/aleart-dialog/index";
 
 interface DialogCardToListProps {
     isOpen?: boolean;
@@ -203,14 +204,12 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
     }
 
     const handleDeleteCard = async () => {
-        if (confirm("Are you sure you want to delete this card?")) {
-            setIsDeleting(true);
-            await fetchDeleteCard({ cardId: card.id });
-            removeCardFromState(card.id);
-            setCardLabels([]);
-            onOpenChange?.(false);
-            setIsDeleting(false);
-        }
+        setIsDeleting(true);
+        await fetchDeleteCard({ cardId: card.id });
+        removeCardFromState(card.id);
+        setCardLabels([]);
+        onOpenChange?.(false);
+        setIsDeleting(false);
     };
 
     const handleClose = () => {
@@ -509,14 +508,35 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
 
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-4 border-t">
-                    <Button
-                        variant="destructive"
-                        onClick={handleDeleteCard}
-                        disabled={isDeleting}
-                    >
-                        <FiTrash2 className="w-4 h-4" />
-                        {isDeleting ? "Deleting..." : "Delete Card"}
-                    </Button>
+
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" disabled={isDeleting}>
+                            <FiTrash2 className="w-4 h-4" />
+                            {isDeleting ? "Deleting..." : "Delete Card"}
+                        </Button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this card?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. The card will be removed from this board.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    variant="destructive"
+                                    onClick={handleDeleteCard}
+                                >
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    
                     <Button
                         onClick={handleClose}
                         variant="default"

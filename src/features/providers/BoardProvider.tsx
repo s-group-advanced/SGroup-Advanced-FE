@@ -160,11 +160,11 @@ export function BoardProvider({ children }: { children: ReactNode }) {
     };
 
     const deleteBoard = async (request: DeleteBoardRequest) => {
-        const board = boards.find(b => b.id === request.boardId);
+        // const board = boards.find(b => b.id === request.boardId);
 
-        if (!board || !confirm(`Are you sure you want to permanently delete "${board.name}"?`)) {
-            return;
-        }
+        // if (!board || !confirm(`Are you sure you want to permanently delete "${board.name}"?`)) {
+        //     return;
+        // }
 
         try {
             await deleteBoardToWorkspace(request);

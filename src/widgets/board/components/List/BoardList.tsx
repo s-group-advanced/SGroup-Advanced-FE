@@ -6,6 +6,7 @@ import { CardInList } from "../Card/CardInList";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu/dropdown-menu";
 import { useListContext } from "@/features/providers/ListProvider";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
+import { AlertDialog, AlertDialogCancel, AlertDialogDescription, AlertDialogTitle, AlertDialogHeader, AlertDialogContent, AlertDialogTrigger, AlertDialogFooter, AlertDialogAction } from "@/shared/ui/aleart-dialog";
 
 interface BoardListProps {
     list: List;
@@ -109,17 +110,14 @@ export function BoardList({ list, index, isDraggingList }: BoardListProps) {
     };
 
     const handleDelete = async () => {
-        if (confirm("Are you sure you want to delete this list?")) {
             setIsDeleting(true);
-            
             try {
                 await fetchDeleteListFromBoard({ boardId: list.board_id, listId: list.id, archived: true });
             } catch (err) {
                 console.error(`Failed to delete list: ${err}`);
                 throw err;
             } finally {
-                setIsDeleting(false);
-            }
+            setIsDeleting(false);
         }
     }
 
@@ -156,30 +154,56 @@ export function BoardList({ list, index, isDraggingList }: BoardListProps) {
                                 </span>
                             )} 
                         </h3>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                        <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
                                 <button className="p-1 hover:bg-gray-200 rounded transition-colors">
                                     <FiMoreHorizontal className="w-4 h-4 text-gray-600 rotate-90" />
                                 </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" sideOffset={8} className="w-48">
-                                <DropdownMenuItem 
+                                </DropdownMenuTrigger>
+
+                                <DropdownMenuContent align="end" sideOffset={8} className="w-48">
+                                <DropdownMenuItem
                                     className="flex items-center gap-2 cursor-pointer"
                                     onClick={handleEditName}
                                 >
                                     <FiEdit className="w-4 h-4" />
                                     Rename
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+
+                                {/* Trigger cho AlertDialog */}
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem
                                     className="flex items-center gap-2 cursor-pointer text-red-600"
-                                    onClick={handleDelete}
                                     disabled={isDeleting}
-                                >
+                                    >
                                     <FiTrash2 className="w-4 h-4" />
                                     Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            {/* Nội dung AlertDialog để outside DropdownMenuContent */}
+                            <AlertDialogContent size="sm">
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this list?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. All cards in this list will also be deleted.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    variant="destructive"
+                                    onClick={handleDelete}
+                                >
+                                    Delete
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                            </AlertDialog>
                     </div>
 
                     {/* Card Items Container - Droppable zone for cards */}
