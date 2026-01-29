@@ -20,4 +20,7 @@ export type {
   MoveCardToListRequest,
   UpdateDueDateOfCardRequest,
   UpdateDueDateOfCardResponse,
+  UpdateCommentOnCardRequest,
+  UpdateCommentOnCardResponse,
+  DeleteCommentOnCardRequest,
 } from "./api/type";

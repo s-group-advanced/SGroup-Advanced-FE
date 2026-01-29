@@ -1,4 +1,4 @@
-import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse } from "@/features/cards/api/type";
+import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest } from "@/features/cards/api/type";
 import { type Card, type GetAllCardsOfBoardResponse, type GetAllCardsOfBoardRequest, useCards, type CreateCardRequest, type CreateCardResponse, type DeleteCardResponse, type DeleteCardRequest } from "@/features/cards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -20,6 +20,8 @@ interface CardDetailContextType {
     handleAssignUserToCard: (request: AssignedUserToCardRequest) => Promise<AssignedUserToCardResponse>;
     handleUnassignUserFromCard: (request: UnassignUserFromCardRequest) => Promise<void>;
     handleCreateCommentOnCard: (request: CreateCommentOnCardRequest) => Promise<CreateCommentOnCardResponse>;
+    handleUpdateCommentOnCard: (request: UpdateCommentOnCardRequest) => Promise<UpdateCommentOnCardResponse>;
+    handleDeleteCommentOnCard: (request: DeleteCommentOnCardRequest) => Promise<void>;
     handleGetAllCommentsOfCard: (request: GetAllCommentsOfCardRequest) => Promise<GetAllCommentsOfCardResponse>;
     handleMoveCardToList: (request: MoveCardToListRequest) => Promise<void>;
     handleUpdateDueDateOfCard: (request: UpdateDueDateOfCardRequest) => Promise<UpdateDueDateOfCardResponse>;
@@ -33,7 +35,7 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const { getAllCardsOfBoard, createCard, deleteCard, updateCard, assignUserToCard, unassignUserFromCard, createCommentOnCard, getAllCommentsOfCard, moveCardToList, updateDueDateOfCard } = useCards();
+    const { getAllCardsOfBoard, createCard, deleteCard, updateCard, assignUserToCard, unassignUserFromCard, createCommentOnCard, getAllCommentsOfCard, moveCardToList, updateDueDateOfCard, updateCommentOnCard, deleteCommentOnCard } = useCards();
 
     // get data from api
     useEffect(() => {
@@ -285,6 +287,29 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         }
       };
 
+    // update comment on card
+    const handleUpdateCommentOnCard = async (request: UpdateCommentOnCardRequest) : Promise<UpdateCommentOnCardResponse> => {
+        try {
+            const data = await updateCommentOnCard(request);
+            if (!data) throw new Error("Failed to update comment on card");
+            return data;
+        } catch (err) {
+            setError("Failed to update comment on card");
+            console.error(`Failed to update comment on card: ${err}`);
+            throw err;
+        }
+    }
+    
+    // delete comment on card
+    const handleDeleteCommentOnCard = async (request: DeleteCommentOnCardRequest) : Promise<void> => {
+        try {
+            await deleteCommentOnCard(request);
+        } catch (err) {
+            setError("Failed to delete comment on card");
+            console.error(`Failed to delete comment on card: ${err}`);
+            throw err;
+        }
+    }
     const value: CardDetailContextType = {
         cards,
         isLoading,
@@ -302,6 +327,8 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         handleGetAllCommentsOfCard,
         handleMoveCardToList,
         handleUpdateDueDateOfCard,
+        handleUpdateCommentOnCard,
+        handleDeleteCommentOnCard,
     }
 
     return (

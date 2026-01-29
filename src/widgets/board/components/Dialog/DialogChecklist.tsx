@@ -184,7 +184,7 @@ export function DialogChecklist({ card }: DialogChecklistProps) {
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-[420px] p-0 h-[500px] flex flex-col">
+            <PopoverContent className="w-[420px] p-0 flex flex-col">
                 {/* Header */}
                 <div className="p-5 space-y-3">
                     <div className="pb-2 border-b border-gray-200">
@@ -220,7 +220,7 @@ export function DialogChecklist({ card }: DialogChecklistProps) {
 
                 {/* Danh sách checklist của card */}
                 <div 
-                    className="flex-1 overflow-y-auto min-h-0 overscroll-y-contain"
+                    className="overflow-y-auto max-h-[360px] overscroll-y-contain"
                     onWheel={(e) => e.stopPropagation()} 
                 >
                     {checklistsOfCard.map(checklist => {

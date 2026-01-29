@@ -119,12 +119,34 @@ export interface CreateCommentOnCardResponse {
   created_at: string;
 }
 
+export interface UpdateCommentOnCardRequest {
+  cardId: string;
+  commentId: string;
+  body: string;
+}
+
+export interface UpdateCommentOnCardResponse {
+  card_id: string;
+  author_id: string;
+  body: string;
+  parent_id?: string;
+  edited_at?: string;
+  id: string;
+  created_at: string;
+  author: User;
+}
+
+export interface DeleteCommentOnCardRequest {
+  cardId: string;
+  commentId: string;
+}
+
 export interface GetAllCommentsOfCardRequest {
   cardId: string;
 }
 
 export interface GetAllCommentsOfCardResponse {
-  id: number;
+  id: string;
   card_id: string;
   author_id: string;
   body: string;

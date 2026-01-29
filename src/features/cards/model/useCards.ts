@@ -8,6 +8,7 @@ import type {
   CreateCommentOnCardResponse,
   DeleteCardRequest,
   DeleteCardResponse,
+  DeleteCommentOnCardRequest,
   GetAllCardsOfBoardRequest,
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
@@ -16,6 +17,8 @@ import type {
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
+  UpdateCommentOnCardRequest,
+  UpdateCommentOnCardResponse,
   UpdateDueDateOfCardRequest,
   UpdateDueDateOfCardResponse,
 } from "../api/type";
@@ -166,6 +169,34 @@ export const useCards = () => {
     }
   };
 
+  // update comment on card
+  const updateCommentOnCard = async (
+    request: UpdateCommentOnCardRequest,
+  ): Promise<UpdateCommentOnCardResponse> => {
+    try {
+      const data = await cardApi.updateCommentOnCard(request);
+      if (!data) throw new Error("Failed to update comment on card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to update comment on card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // delete comment on card
+  const deleteCommentOnCard = async (
+    request: DeleteCommentOnCardRequest,
+  ): Promise<void> => {
+    try {
+      await cardApi.deleteCommentOnCard(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to delete comment on card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllCardsOfBoard,
     createCard,
@@ -177,5 +208,7 @@ export const useCards = () => {
     getAllCommentsOfCard,
     moveCardToList,
     updateDueDateOfCard,
+    updateCommentOnCard,
+    deleteCommentOnCard,
   };
 };

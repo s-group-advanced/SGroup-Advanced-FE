@@ -8,6 +8,7 @@ import type {
   CreateCommentOnCardResponse,
   DeleteCardRequest,
   DeleteCardResponse,
+  DeleteCommentOnCardRequest,
   GetAllCardsOfBoardRequest,
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
@@ -16,6 +17,8 @@ import type {
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
+  UpdateCommentOnCardRequest,
+  UpdateCommentOnCardResponse,
   UpdateDueDateOfCardRequest,
   UpdateDueDateOfCardResponse,
 } from "./type";
@@ -93,6 +96,31 @@ export const cardApi = {
   ): Promise<GetAllCommentsOfCardResponse> => {
     return fetchFactory.get<GetAllCommentsOfCardResponse>(
       CardEndpoint.GET_ALL_COMMENTS_OF_CARD.replace("{cardId}", request.cardId),
+    );
+  },
+
+  // update comment on card
+  updateCommentOnCard: (
+    request: UpdateCommentOnCardRequest,
+  ): Promise<UpdateCommentOnCardResponse> => {
+    const { cardId, commentId, ...body } = request;
+    return fetchFactory.patch<UpdateCommentOnCardResponse>(
+      CardEndpoint.UPDATE_COMMENT_ON_CARD.replace("{cardId}", cardId).replace(
+        "{commentId}",
+        commentId.toString(),
+      ),
+      body,
+    );
+  },
+
+  // delete comment on card
+  deleteCommentOnCard: (request: DeleteCommentOnCardRequest): Promise<void> => {
+    const { cardId, commentId } = request;
+    return fetchFactory.delete<void>(
+      CardEndpoint.DELETE_COMMENT_ON_CARD.replace("{cardId}", cardId).replace(
+        "{commentId}",
+        commentId.toString(),
+      ),
     );
   },
 

@@ -48,6 +48,8 @@ export const API_ENDPOINTS = {
     UNASSIGN_USER_FROM_CARD: "/cards/{cardId}/members/{userId}",
     CREATE_COMMENT_ON_CARD: "/cards/{cardId}/comments",
     GET_ALL_COMMENTS_OF_CARD: "/cards/{cardId}/comments",
+    UPDATE_COMMENT_ON_CARD: "/cards/{cardId}/comments/{commentId}",
+    DELETE_COMMENT_ON_CARD: "/cards/{cardId}/comments/{commentId}",
     ADD_LABEL_TO_CARD: "/cards/{cardId}/labels",
     GET_LABELS_OF_CARD: "/cards/{cardId}/labels",
     GET_AVAILABLE_LABELS_OF_BOARD: "/cards/{cardId}/labels/available",
