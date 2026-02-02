@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { FiX, FiTrash2 } from "react-icons/fi";
-import type { Card } from "@/features/cards/index";
+import { FiX, FiTrash2, FiArrowRight, FiChevronDown } from "react-icons/fi";
+import { useCards, type Card } from "@/features/cards/index";
 import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
 import { useBoardDetail } from "@/features/providers/BoardDetailProvider";
@@ -16,6 +16,12 @@ import { DueDateToCard } from "./DueDateToCard";
 import { formatDDMMYYYY } from "@/shared/utils/formatDDMMYYYY";
 import { Checkbox } from "@/shared/ui/checkbox/index";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/shared/ui/aleart-dialog/index";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
+import { useBoardContext } from "@/features/providers";
+import { useLists } from "@/features/lists/index";
+import { toast } from "sonner";
 
 interface DialogCardToListProps {
     isOpen?: boolean;
@@ -35,6 +41,17 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
     const { getLabelsOfCard } = useLabels();
     const [cardLabels, setCardLabels] = useState<any[]>([]);
 
+    const [isMovePopoverOpen, setIsMovePopoverOpen] = useState(false);
+    const [selectedBoardId, setSelectedBoardId] = useState<string>(card.board_id);
+    const [selectedListId, setSelectedListId] = useState<string>(card.list_id);
+    const [selectedPosition, setSelectedPosition] = useState<number>(0);
+    const [listsOfSelectedBoard, setListsOfSelectedBoard] = useState<any[]>([]);
+    const [cardsInSelectedList, setCardsInSelectedList] = useState<any[]>([]);
+
+    const { boards } = useBoardContext();
+    const { getAllListsOfBoard } = useLists();
+    const { getAllCardsOfBoard } = useCards();
+
     const { 
         fetchDeleteCard, 
         removeCardFromState, 
@@ -42,7 +59,8 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
         updateCardInState, 
         handleAssignUserToCard, 
         handleUnassignUserFromCard ,
-        handleUpdateDueDateOfCard
+        handleUpdateDueDateOfCard,
+        handleMoveCardToList
     } = useCardDetailContext();
 
     useEffect(() => {
@@ -61,6 +79,89 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
             setDueTime("00:00");
         }
     }, [card.end_date]);
+
+    // fetch lists when board change
+    useEffect(() => {
+        if (selectedBoardId && isMovePopoverOpen) {
+            fetchListsForBoard(selectedBoardId);
+        }
+    }, [selectedBoardId, isMovePopoverOpen]);
+
+    // fetch lists for board
+    const fetchListsForBoard = async (boardId: string) => {
+        try {
+            const lists = await getAllListsOfBoard({ boardId });
+            const listsData = Array.isArray(lists) ? lists : [lists];
+            setListsOfSelectedBoard(listsData);
+    
+            // Reset list về list đầu tiên của board mới (hoặc empty nếu không có list)
+            if (listsData.length > 0) {
+                // Chỉ set list mới nếu list hiện tại không thuộc board mới
+                if (!listsData.find(l => l.id === selectedListId)) {
+                    setSelectedListId(listsData[0].id);
+                }
+            } else {
+                // Nếu board không có list nào, reset về empty
+                setSelectedListId("");
+            }
+            
+            // Reset position về 0 khi board thay đổi
+            setSelectedPosition(0);
+        } catch (err) {
+            console.error(`Failed to fetch lists for board: ${err}`);
+            setListsOfSelectedBoard([]);
+            setSelectedListId("");
+        }
+    };
+
+    // fet cards in selected list
+    useEffect(() => {
+        if (selectedListId && isMovePopoverOpen && selectedBoardId) {
+            fetchCardsForList(selectedBoardId, selectedListId);
+        }
+    }, [selectedListId, isMovePopoverOpen, selectedBoardId]);
+
+    const fetchCardsForList = async (boardId: string, listId: string) => {
+        try {
+            const cards = await getAllCardsOfBoard({ boardId });
+            const cardsData = Array.isArray(cards) ? cards : [cards];
+
+            const cardsInList = cardsData
+                .filter(c => c.list_id === listId)
+                .sort((a, b) => a.position - b.position);
+            setCardsInSelectedList(cardsInList);
+
+            setSelectedPosition(0);
+        } catch (err) {
+            console.error(`Failed to fetch cards for list: ${err}`);
+            setCardsInSelectedList([]);
+        }
+    }
+
+    // move card to list
+    const handleMoveCard = async () => {
+        if (!selectedListId) {
+            toast.error("Please select a list");
+            return;
+        }
+
+        try {
+            await handleMoveCardToList({
+                cardId: card.id,
+                targetListId: selectedListId,
+                newIndex: selectedPosition,
+            });
+            toast.success("Card moved to list successfully", {
+                position: "top-center",
+            });
+            setIsMovePopoverOpen(false);
+        } catch (err) {
+            console.error(`Failed to move card to list: ${err}`);
+            toast.error("Failed to move card to list", {
+                position: "top-center",
+            });
+        }
+    }
 
     const fetchCardLabels = async () => {
         try {
@@ -325,14 +426,167 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
             });
         }
     }
+
+    const selectedBoard = boards.find(b => b.id === selectedBoardId);
+    const selectedList = listsOfSelectedBoard.find(l => l.id === selectedListId);
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="text-xl font-semibold">
-                            {listName}
-                        </DialogTitle>
+                    <Popover open={isMovePopoverOpen} onOpenChange={setIsMovePopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <button className="text-xl font-semibold cursor-pointer flex items-center gap-2">
+                                    {listName}
+                                    <FiChevronDown className="w-4 h-4" />
+                                </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[400px] p-0" align="start">
+                                <div className="p-4 space-y-4">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-lg font-semibold">Di chuyển thẻ</h3>
+                                        <button
+                                            className="text-gray-500 hover:text-gray-700"
+                                            onClick={() => setIsMovePopoverOpen(false)}
+                                        >
+                                            <FiX className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Tabs */}
+                                    <Tabs defaultValue="board" className="w-full">
+                                        <TabsList className="grid w-full grid-cols-2">
+                                            <TabsTrigger value="inbox">Hộp thư đến</TabsTrigger>
+                                            <TabsTrigger value="board">Bảng thông tin</TabsTrigger>
+                                        </TabsList>
+                                        
+                                        <TabsContent value="board" className="space-y-4 mt-4">
+                                            {/* Suggested */}
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-semibold text-gray-700">Đã gợi ý</label>
+                                                <button className="w-full flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors">
+                                                    <FiArrowRight className="w-4 h-4" />
+                                                    This Week
+                                                </button>
+                                            </div>
+                                            
+                                            {/* Destination Selection */}
+                                            <div className="space-y-4">
+                                                <label className="text-xs font-semibold text-gray-600">Chọn đích đến</label>
+                                                
+                                                {/* Board Selection */}
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-600">Bảng thông tin</label>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
+                                                                <span>{selectedBoard?.name || "Chọn bảng"}</span>
+                                                                <FiChevronDown className="w-4 h-4 text-gray-500" />
+                                                            </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="w-[300px]" align="start">
+                                                        {boards.map((board) => (
+                                                                <DropdownMenuItem
+                                                                    key={board.id}
+                                                                    onClick={() => {
+                                                                        setSelectedBoardId(board.id);
+                                                                        setSelectedListId("");
+                                                                        setSelectedPosition(0);
+                                                                    }}
+                                                                    className="cursor-pointer"
+                                                                >
+                                                                    {board.name}
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                                
+                                                {/* List and Position Selection */}
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    {/* List Selection */}
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-600">Danh sách</label>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
+                                                                    <span>{selectedList?.name || "Chọn danh sách"}</span>
+                                                                    <FiChevronDown className="w-4 h-4 text-gray-500" />
+                                                                </button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent className="w-[200px]" align="start">
+                                                                {listsOfSelectedBoard.map((list) => (
+                                                                    <DropdownMenuItem
+                                                                        key={list.id}
+                                                                        onClick={() => setSelectedListId(list.id)}
+                                                                        className="cursor-pointer"
+                                                                    >
+                                                                        {list.name}
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                    
+                                                    {/* Position Selection */}
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-600">Vị trí</label>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
+                                                                    <span>{selectedPosition + 1}</span>
+                                                                    <FiChevronDown className="w-4 h-4 text-gray-500" />
+                                                                </button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent className="w-[150px]" align="start">
+                                                                {Array.from({ length: cardsInSelectedList.length + 1 }, (_, index) => (
+                                                                    <DropdownMenuItem
+                                                                        key={index}
+                                                                        onClick={() => setSelectedPosition(index)}
+                                                                        className="cursor-pointer"
+                                                                    >
+                                                                        {index + 1}
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Move Button */}
+                                            <Button
+                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                                onClick={handleMoveCard}
+                                            >
+                                                Di chuyển
+                                            </Button>
+                                        </TabsContent>
+                                        
+                                        <TabsContent value="inbox" className="mt-4">
+                                            <div className="flex items-center gap-2 justify-between">
+                                                <label>Lựa chọn vị trí</label>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="w-3xs flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
+                                                            <span className="text-sm font-semibold">1</span>
+                                                            <FiChevronDown className="w-4 h-4 text-gray-500" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="w-[200px]" align="start">
+                                                        <DropdownMenuItem className="cursor-pointer">
+                                                            {"Chọn danh sách"}
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TabsContent>
+                                    </Tabs>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                 </DialogHeader>
 
