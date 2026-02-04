@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { FiX, FiTrash2, FiArrowRight, FiChevronDown } from "react-icons/fi";
+import { FiX, FiTrash2, FiArrowRight, FiChevronDown, FiArrowLeft } from "react-icons/fi";
 import { useCards, type Card } from "@/features/cards/index";
 import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
@@ -47,6 +47,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
     const [selectedPosition, setSelectedPosition] = useState<number>(0);
     const [listsOfSelectedBoard, setListsOfSelectedBoard] = useState<any[]>([]);
     const [cardsInSelectedList, setCardsInSelectedList] = useState<any[]>([]);
+    const [suggestedList, setSuggestedList] = useState<any[]>([]);
 
     const { boards } = useBoardContext();
     const { getAllListsOfBoard } = useLists();
@@ -86,6 +87,90 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
             fetchListsForBoard(selectedBoardId);
         }
     }, [selectedBoardId, isMovePopoverOpen]);
+
+    // suggest list when open popover
+    useEffect(() => {
+        if (isMovePopoverOpen && card.board_id) {
+            calculateSuggestedList();
+        }
+    }, [isMovePopoverOpen, card.board_id, card.list_id])
+
+    const calculateSuggestedList = async () => {
+        try {
+            // Fetch all lists of current board (board of card)
+            const lists = await getAllListsOfBoard({ boardId: card.board_id });
+            const listsData = Array.isArray(lists) ? lists : [lists];
+
+            // sort lists by position
+            const sortedLists = [...listsData].sort((a, b) => a.position - b.position);
+
+            const currentListIndex = sortedLists.findIndex(l => l.id === card.list_id);
+
+            if (currentListIndex === -1) {
+                setSuggestedList([]);
+                return;
+            }
+
+            const suggested : any[] = [];
+
+            if (currentListIndex === 0) {
+                if (sortedLists.length > 1) {
+                    suggested.push({
+                        ...sortedLists[1],
+                        direction: "right",
+                    });
+                }
+            } else if (currentListIndex === sortedLists.length - 1) {
+                if (sortedLists.length > 1) {
+                    suggested.push({
+                        ...sortedLists[currentListIndex - 1],
+                        direction: "left",
+                    });
+                }
+            } else {
+                suggested.push({
+                    ...sortedLists[currentListIndex - 1],
+                    direction: "left",
+                });
+                suggested.push({
+                    ...sortedLists[currentListIndex + 1],
+                    direction: "right",
+                });
+            }
+
+            setSuggestedList(suggested);
+        } catch (err) {
+            console.error(`Failed to calculate suggested list: ${err}`);
+            setSuggestedList([]);
+        }
+    }
+
+    // handle click on suggested list
+    const handleSuggestedListClick = async (listId: string) => {
+        try {
+            setSelectedBoardId(card.board_id);
+            setSelectedListId(listId);
+            setSelectedPosition(0);
+
+            await fetchListsForBoard(card.board_id);
+            await fetchCardsForList(card.board_id, listId);
+
+            await handleMoveCardToList({
+                cardId: card.id,
+                targetListId: listId,
+                newIndex: 0,
+            });
+            toast.success("Card moved to suggested list successfully", {
+                position: "top-center",
+            });
+            setIsMovePopoverOpen(false);
+        } catch (err) {
+            console.error(`Failed to handle suggested list click: ${err}`);
+            toast.error("Failed to handle suggested list click", {
+                position: "top-center",
+            });
+        }
+    }
 
     // fetch lists for board
     const fetchListsForBoard = async (boardId: string) => {
@@ -466,10 +551,24 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                             {/* Suggested */}
                                             <div className="space-y-2">
                                                 <label className="text-sm font-semibold text-gray-700">Đã gợi ý</label>
-                                                <button className="w-full flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors">
-                                                    <FiArrowRight className="w-4 h-4" />
-                                                    This Week
-                                                </button>
+                                                {suggestedList.length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {suggestedList.map((list) => (
+                                                            <button
+                                                                key={list.id}
+                                                                onClick={() => handleSuggestedListClick(list.id)}
+                                                                className="w-full flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors"
+                                                            >
+                                                                {list.direction === "right" ? <FiArrowRight className="w-4 h-4" /> : <FiArrowLeft className="w-4 h-4" />}
+                                                                {list.name}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-xs text-gray-400 px-3 py-2">
+                                                        Không có gợi ý
+                                                    </div>
+                                                )}
                                             </div>
                                             
                                             {/* Destination Selection */}
@@ -577,11 +676,18 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent className="w-[200px]" align="start">
                                                         <DropdownMenuItem className="cursor-pointer">
-                                                            {"Chọn danh sách"}
+                                                            1
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
+
                                             </div>
+                                                <Button
+                                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-4"
+                                                    onClick={handleMoveCard}
+                                                >
+                                                    Di chuyển
+                                                </Button>
                                         </TabsContent>
                                     </Tabs>
                                 </div>

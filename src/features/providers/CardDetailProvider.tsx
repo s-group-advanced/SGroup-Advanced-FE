@@ -25,6 +25,7 @@ interface CardDetailContextType {
     handleGetAllCommentsOfCard: (request: GetAllCommentsOfCardRequest) => Promise<GetAllCommentsOfCardResponse>;
     handleMoveCardToList: (request: MoveCardToListRequest) => Promise<void>;
     handleUpdateDueDateOfCard: (request: UpdateDueDateOfCardRequest) => Promise<UpdateDueDateOfCardResponse>;
+    refreshCards: (boardId?: string) => Promise<void>;
 }
 
 const CardDetailContext = createContext<CardDetailContextType | undefined>(undefined);
@@ -310,6 +311,14 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
             throw err;
         }
     }
+
+    // refresh cards
+    const refreshCards = async (customBoardId?: string) => {
+        const id = customBoardId ?? boardId;
+        if (!id) return;
+        await fetchCards(id);
+    };
+    
     const value: CardDetailContextType = {
         cards,
         isLoading,
@@ -329,6 +338,7 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         handleUpdateDueDateOfCard,
         handleUpdateCommentOnCard,
         handleDeleteCommentOnCard,
+        refreshCards,
     }
 
     return (

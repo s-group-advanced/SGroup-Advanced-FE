@@ -1,10 +1,12 @@
 import type { ApiError } from "@/shared/api/fetchFactory";
 import type {
+  CopyListToBoardRequest,
   CreateListRequest,
   CreateListResponse,
   DeleteListFromBoardRequest,
   GetAllListofBoardRequest,
   GetAllListofBoardResponse,
+  MoveListToAnotherBoardRequest,
   MoveListToBoardRequest,
   UpdateNameListRequest,
 } from "../api/type";
@@ -74,11 +76,39 @@ export const useLists = () => {
     }
   };
 
+  // move list to another board
+  const moveListToAnotherBoard = async (
+    request: MoveListToAnotherBoardRequest,
+  ) => {
+    try {
+      await listApi.moveListToAnotherBoard(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to move list to another board: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // copy list to board
+  const copyListToBoard = async (request: CopyListToBoardRequest) => {
+    try {
+      await listApi.copyListToBoard(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to copy list to board: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllListsOfBoard,
     createList,
     updateNameList,
     deleteListFromBoard,
     moveListToBoard,
+    moveListToAnotherBoard,
+    copyListToBoard,
   };
 };

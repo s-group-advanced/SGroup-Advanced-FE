@@ -1,10 +1,12 @@
 import { ListEndpoint } from "@/shared/api/endpoints";
 import type {
+  CopyListToBoardRequest,
   CreateListRequest,
   CreateListResponse,
   DeleteListFromBoardRequest,
   GetAllListofBoardRequest,
   GetAllListofBoardResponse,
+  MoveListToAnotherBoardRequest,
   MoveListToBoardRequest,
   UpdateNameListRequest,
 } from "./type";
@@ -56,6 +58,24 @@ export const listApi = {
     const { listId, ...body } = request;
     return fetchFactory.patch<void>(
       ListEndpoint.MOVE_LIST_TO_BOARD.replace("{listId}", listId),
+      body,
+    );
+  },
+
+  // move list to another board
+  moveListToAnotherBoard: (request: MoveListToAnotherBoardRequest) => {
+    const { listId, ...body } = request;
+    return fetchFactory.patch<void>(
+      ListEndpoint.MOVE_LIST_TO_ANOTHER_BOARD.replace("{listId}", listId),
+      body,
+    );
+  },
+
+  // copy list to board
+  copyListToBoard: (request: CopyListToBoardRequest) => {
+    const { listId, ...body } = request;
+    return fetchFactory.post<void>(
+      ListEndpoint.COPY_LIST_TO_BOARD.replace("{listId}", listId),
       body,
     );
   },

@@ -63,6 +63,8 @@ export const API_ENDPOINTS = {
     UPDATE_NAME_LIST: "/boards/{boardId}/lists/{listId}",
     DELETE_LIST_FROM_BOARD: "/boards/{boardId}/lists/{listId}/archive",
     MOVE_LIST_TO_BOARD: "/boards/lists/{listId}/reorder",
+    MOVE_LIST_TO_ANOTHER_BOARD: "/boards/lists/{listId}/move",
+    COPY_LIST_TO_BOARD: "/boards/lists/{listId}/copy",
   },
   CHECKLIST: {
     GET_ALL_CHECKLISTS_OF_CARD: "/cards/{cardId}/checklists",

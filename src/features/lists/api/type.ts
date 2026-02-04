@@ -54,3 +54,15 @@ export interface MoveListToBoardRequest {
   listId: string;
   newIndex: number;
 }
+
+export interface MoveListToAnotherBoardRequest {
+  listId: string;
+  targetBoardId: string;
+  position?: number;
+}
+
+export interface CopyListToBoardRequest {
+  listId: string;
+  targetBoardId: string;
+  newName?: string;
+}

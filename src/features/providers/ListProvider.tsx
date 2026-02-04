@@ -2,7 +2,7 @@ import { type GetAllListofBoardResponse, type GetAllListofBoardRequest, type Lis
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { createContext } from "react";
-import type { DeleteListFromBoardRequest, MoveListToBoardRequest, UpdateNameListRequest } from "@/features/lists/api/type";
+import type { CopyListToBoardRequest, DeleteListFromBoardRequest, MoveListToAnotherBoardRequest, MoveListToBoardRequest, UpdateNameListRequest } from "@/features/lists/api/type";
 import { useBoardContext } from "./BoardProvider";
 
 interface ListContextType {
@@ -18,6 +18,8 @@ interface ListContextType {
     fetchUpdateNameList: (request: UpdateNameListRequest) => void;
     fetchDeleteListFromBoard: (request: DeleteListFromBoardRequest) => void;
     fetchReorderList: (request: MoveListToBoardRequest) => Promise<void>;
+    handleMoveListToAnotherBoard: (request: MoveListToAnotherBoardRequest) => Promise<void>;
+    handleCopyListToBoard: (request: CopyListToBoardRequest) => Promise<void>;
 }
 
 const ListContext = createContext<ListContextType | undefined>(undefined);
@@ -28,7 +30,7 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { refreshBoard } = useBoardContext();
-    const { getAllListsOfBoard, createList, updateNameList, deleteListFromBoard, moveListToBoard } = useLists();
+    const { getAllListsOfBoard, createList, updateNameList, deleteListFromBoard, moveListToBoard, moveListToAnotherBoard, copyListToBoard } = useLists();
 
     // get data from api
     useEffect(() => {
@@ -137,6 +139,41 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
             throw err;
         }
     }
+
+    // move list to another board
+    const handleMoveListToAnotherBoard = async (request: MoveListToAnotherBoardRequest) => {
+        try {
+            await moveListToAnotherBoard(request);
+
+            if (request.targetBoardId) {
+                await refreshBoard(request.targetBoardId);
+            }
+
+            setList(prevList => prevList.filter(l => l.id !== request.listId));
+        } catch (err) {
+            setError("Failed to move list to another board");
+            console.error(`Failed to move list to another board: ${err}`);
+            throw err;
+        }
+    }
+
+    // copy list to board
+    const handleCopyListToBoard = async (request: CopyListToBoardRequest) => {
+        try {
+            await copyListToBoard(request);
+
+            if (boardId && request.targetBoardId === boardId) {
+                await fetchLists(boardId);
+            }
+
+            await refreshBoard(request.targetBoardId);
+        } catch (err) {
+            setError("Failed to copy list to board");
+            console.error(`Failed to copy list to board: ${err}`);
+            throw err;
+        }
+    }
+
     const value : ListContextType = {
         list, 
         isLoading,
@@ -146,7 +183,9 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
         addListToState,
         fetchUpdateNameList,
         fetchDeleteListFromBoard,
-        fetchReorderList
+        fetchReorderList,
+        handleMoveListToAnotherBoard,
+        handleCopyListToBoard,
     }
 
     return (
