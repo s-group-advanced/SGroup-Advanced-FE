@@ -5,6 +5,7 @@ import type {
   CreateWorkspaceRequest,
   InviteMemberToWorkspaceRequest,
   Project,
+  UpdateWorkspaceRequest,
 } from "../api/type";
 import { useState } from "react";
 
@@ -82,6 +83,17 @@ export const useProject = () => {
     }
   };
 
+  // update workspace
+  const updateWorkspace = async (request: UpdateWorkspaceRequest) => {
+    try {
+      await projectApi.updateWorkspace(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log(`Failed to update workspace: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     projects,
     getAllProjectsOfUser,
@@ -89,5 +101,6 @@ export const useProject = () => {
     getAllMemberOfWorkspaceButNotInWorkspace,
     inviteMemberToWorkspace,
     archiveWorkspace,
+    updateWorkspace,
   };
 };

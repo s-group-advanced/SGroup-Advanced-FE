@@ -34,13 +34,13 @@ export function UserProfileMenu() {
 
                     <div className="flex items-center gap-2 w-full"> 
                         {/* Avatar */}
-                        <div className="w-8 h-8 rounded-md bg-gray-200">
+                        <div className="w-8 h-8 rounded-md bg-gray-200 flex-shrink-0">
                             <img src={userData?.avatar_url || conKhiImg} alt="avatar" className="w-full h-full object-cover rounded-lg" />
                         </div>
                         
                         {/* Text */}
-                        <div className="flex flex-col items-start">
-                            <div className="text-sm font-medium select-none">{userData?.name}</div>
+                        <div className="flex flex-col items-start flex-1 min-w-0">
+                            <div className="text-sm font-medium select-none truncate">{userData?.name}</div>
                             <div className="text-xs select-none">{userData?.email}</div>
                         </div>
                     </div>
@@ -60,13 +60,13 @@ export function UserProfileMenu() {
             <div className="px-1 py-1">
                 <div className="flex  items-center gap-2 p-2">
                     {/* avatar */}
-                    <div className="w-8 h-8 rounded-md bg-gray-200">
+                    <div className="w-8 h-8 rounded-md bg-gray-200 flex-shrink-0">
                         <img src={userData?.avatar_url || conKhiImg} alt="avatar" className="w-full h-full object-cover rounded-lg" />
                     </div>
                     {/* name */}
-                    <div className="flex flex-col items-start">
-                        <div className="text-sm font-medium select-none">{userData?.name}</div>
-                        <div className="text-xs select-none">{userData?.email}</div>
+                    <div className="flex flex-col items-start flex-1 min-w-0">
+                        <div className="text-sm font-medium select-none truncate w-full">{userData?.name}</div>
+                        <div className="text-xs select-none truncate w-full">{userData?.email}</div>
                     </div>
                 </div>
             </div>

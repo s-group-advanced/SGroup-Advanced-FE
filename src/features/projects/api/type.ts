@@ -45,3 +45,9 @@ export interface InviteMemberToWorkspaceRequest {
 export interface ArchiveWorkspaceRequest {
   workspaceId: string;
 }
+
+export interface UpdateWorkspaceRequest {
+  workspaceId: string;
+  name: string;
+  description?: string;
+}

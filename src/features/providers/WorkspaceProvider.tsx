@@ -1,17 +1,24 @@
 // src/features/projects/model/ProjectProvider.tsx
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { projectApi } from "../projects/api/projectApi";
-import type { ArchiveWorkspaceRequest, InviteMemberToWorkspaceRequest, Project } from "../projects/api/type";
-import type { GetAllMemberOfWorkspaceButNotInWorkspaceResponse } from "../projects/index";
+import type { ArchiveWorkspaceRequest, CreateWorkspaceRequest, CreateWorkspaceResponse, InviteMemberToWorkspaceRequest, Project } from "../projects/api/type";
+import type { GetAllMemberOfWorkspaceButNotInWorkspaceResponse, UpdateWorkspaceRequest } from "../projects/index";
 
 interface WorkspaceContextType {
     projects: Project[];
     isLoading: boolean;
     getAllProjectsOfUser: () => Promise<void>;
+    createWorkspace: (request: CreateWorkspaceRequest) => Promise<CreateWorkspaceResponse>;
     clearWorkspaces: () => void;
     fetchAllMemberOfWorkspaceButNotInWorkspace: (workspaceId: string) => Promise<GetAllMemberOfWorkspaceButNotInWorkspaceResponse[]>;
     handleInviteMemberToWorkspace: (request: InviteMemberToWorkspaceRequest) => Promise<void>;
     handleToggleArchiveWorkspace: (request: ArchiveWorkspaceRequest) => Promise<void>;
+
+    selectedWorkspace: Project | null;
+    isEditDialogOpen: boolean;
+    openEditDialog: (workspaceId: string) => void;
+    closeEditDialog: () => void;
+    updateWorkspace: (request: UpdateWorkspaceRequest) => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -19,6 +26,9 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    const [selectedWorkspace, setSelectedWorkspace] = useState<Project | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const getAllProjectsOfUser = async () => {
         setIsLoading(true);
@@ -55,6 +65,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    // create workspace
+    const createWorkspace = async (request: CreateWorkspaceRequest) => {
+        try {
+            const data = await projectApi.createWorkspace(request) as CreateWorkspaceResponse;
+            return data;
+        } catch (err) {
+            console.error(`Failed to create workspace: ${err}`);
+            throw err;
+        }
+    }
+
     // invite member to workspace
     const handleInviteMemberToWorkspace = async (request: InviteMemberToWorkspaceRequest) => {
         setIsLoading(true);
@@ -85,6 +106,43 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    // open edit dialog
+    const openEditDialog = (workspaceId: string) => {
+        const workspace = projects.find(p => p.id === workspaceId);
+        if (!workspace) return;
+        setSelectedWorkspace(workspace);
+        setIsEditDialogOpen(true);
+    }
+
+    // close edit dialog
+    const closeEditDialog = () => {
+        setIsEditDialogOpen(false);
+        setSelectedWorkspace(null);
+    }
+
+    // update workspace
+    const updateWorkspace = async (request: UpdateWorkspaceRequest) => {
+        try {
+            await projectApi.updateWorkspace(request);
+
+            setProjects(prev => 
+                prev.map(p => 
+                    p.id === request.workspaceId
+                    ? {
+                        ...p,
+                        name: request.name ?? p.name,
+                        description: request.description ?? p.description,
+                    }
+                    : p
+                )
+            )
+            closeEditDialog();
+        } catch (err) {
+            console.error(`Failed to update workspace: ${err}`);
+            throw err;
+        }
+    }
+
     const value: WorkspaceContextType = {
         projects,
         isLoading,
@@ -92,7 +150,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         clearWorkspaces,
         fetchAllMemberOfWorkspaceButNotInWorkspace,
         handleInviteMemberToWorkspace,
-        handleToggleArchiveWorkspace
+        handleToggleArchiveWorkspace,
+        createWorkspace,
+        selectedWorkspace,
+        isEditDialogOpen,
+        openEditDialog,
+        closeEditDialog,
+        updateWorkspace,
     }
 
     return (

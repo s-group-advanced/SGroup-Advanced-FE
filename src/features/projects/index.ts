@@ -6,4 +6,5 @@ export type {
   GetAllMemberOfWorkspaceButNotInWorkspaceResponse,
   InviteMemberToWorkspaceRequest,
   ArchiveWorkspaceRequest,
+  UpdateWorkspaceRequest,
 } from "./api/type";

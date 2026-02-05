@@ -7,6 +7,7 @@ import type {
   GetAllMemberOfWorkspaceButNotInWorkspaceResponse,
   InviteMemberToWorkspaceRequest,
   Project,
+  UpdateWorkspaceRequest,
 } from "./type";
 
 export const projectApi = {
@@ -59,6 +60,15 @@ export const projectApi = {
         "{workspaceId}",
         request.workspaceId,
       ),
+    );
+  },
+
+  // update workspace
+  updateWorkspace: (request: UpdateWorkspaceRequest) => {
+    const { workspaceId, ...body } = request;
+    return fetchFactory.patch<void>(
+      ProjectEndpoint.UPDATE_WORKSPACE.replace("{workspaceId}", workspaceId),
+      body,
     );
   },
 };

@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { ContextMenu, ContextMenuContent, ContextMenuItem } from "@/shared/ui/context-menu";
 import { ContextMenuTrigger } from "@radix-ui/react-context-menu";
 import { Badge } from "@/shared/ui/badge";
+import { FiArchive, FiEdit, FiRefreshCcw } from "react-icons/fi";
 
 interface WorkspaceBoards {
     [workspaceId: string]: {
@@ -24,7 +25,7 @@ interface WorkspaceBoards {
 }
 
 export function HomeWidget() {
-    const { projects, getAllProjectsOfUser, isLoading: isLoadingWorkspaces, handleToggleArchiveWorkspace } = useWorkspaceContext();
+    const { projects, getAllProjectsOfUser, isLoading: isLoadingWorkspaces, handleToggleArchiveWorkspace, openEditDialog } = useWorkspaceContext();
     const { boards, isLoading: isLoadingBoards } = useBoardContext();  
     const { getBoardById } = useBoards();
     const [workspaceBoards, setWorkspaceBoards] = useState<WorkspaceBoards>({});
@@ -106,10 +107,11 @@ export function HomeWidget() {
             })
         }
     }
-    
+
     return (
         <div className="flex-1 overflow-y-auto">
             <DialogNewBoard mode="edit" />
+            <DialogNewWorkspace mode="edit" headerTitle="Edit Workspace" headerDescription="Update your workspace information" />
             {/* Header */}
             <div className="p-4 border-gray-200">
                 <div className="border-gray-200 flex">
@@ -125,7 +127,12 @@ export function HomeWidget() {
                         <h1 className="text-3xl font-bold">Dashboard</h1>
                         <p className="text-gray-500">Manage your workspaces and boards</p>
                     </div>
-                    <DialogNewWorkspace onWorkspaceCreated={handleWorkspaceCreated} />
+                    <DialogNewWorkspace
+                        mode="create"
+                        headerTitle="Create New Workspace"
+                        headerDescription="Create a new workspace to organize your boards and collaborate with your team."
+                        onWorkspaceCreated={handleWorkspaceCreated}
+                        />
                 </div>
             </div>
 
@@ -163,7 +170,16 @@ export function HomeWidget() {
                                                 )}
                                             </ContextMenuTrigger>
                                             <ContextMenuContent>
+                                                {/* Rename Workspace */}
+                                                {!isArchived && (
+                                                    <ContextMenuItem onClick={() => openEditDialog(project.id)}>
+                                                        <FiEdit className="w-4 h-4 mr-2" />
+                                                        Edit Workspace
+                                                    </ContextMenuItem>
+                                                )}
+
                                                 <ContextMenuItem onClick={() => handleToggleArchiveWorkspaceClick(project.id, project.name, isArchived)}>
+                                                    {isArchived ? <FiRefreshCcw className="w-4 h-4 mr-2" /> : <FiArchive className="w-4 h-4 mr-2" />}
                                                     {isArchived ? "Restore Workspace" : "Archive Workspace"}
                                                 </ContextMenuItem>
                                             </ContextMenuContent>
