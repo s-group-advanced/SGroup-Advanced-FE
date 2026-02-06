@@ -51,3 +51,24 @@ export interface UpdateWorkspaceRequest {
   name: string;
   description?: string;
 }
+
+export interface CreateLinkInvitationToWorkspaceRequest {
+  workspaceId: string;
+}
+
+export interface CreateLinkInvitationToWorkspaceResponse {
+  inviteUrl: string;
+  token: string;
+}
+
+export interface DisableLinkInvitationToWorkspaceRequest {
+  workspaceId: string;
+  token: string;
+}
+
+export interface GetCurrentLinkInvitationToWorkspaceResponse {
+  exists: boolean;
+  inviteUrl?: string;
+  token?: string;
+  createdAt?: string;
+}

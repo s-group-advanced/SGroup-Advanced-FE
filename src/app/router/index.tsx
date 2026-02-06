@@ -6,6 +6,7 @@ import { MainLayout } from "../layouts/MainLayout"
 import { AcceptInvitationPage } from "@/pages/invitation/ui/AcceptInvitationPage"
 import OAuthCallbackPage from "@/pages/login/ui/OAuthCallbackPage"
 import { ProfilePage } from "@/pages/profile/index"
+import { InviteToWorkspaceError } from "@/shared/ui/invite-to-workspace-error"
 
 const RegisterPage = React.lazy(() => import("@/pages/register/ui/RegisterPage").then(module => ({ default: module.RegisterPage })))
 const LoginPage = React.lazy(() => import("@/pages/login/ui/LoginPage").then(module => ({ default: module.LoginPage })))
@@ -102,6 +103,10 @@ export function AppRoutes() {
                     </React.Suspense>
                 } />
             </Route>
+
+            <Route path="/invite-error" element={
+                <InviteToWorkspaceError />
+            } />
 
             <Route path="/boards/invitations/:token/accept" element={
                 <AuthGuard>

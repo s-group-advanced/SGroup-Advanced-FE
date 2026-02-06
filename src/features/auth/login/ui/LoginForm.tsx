@@ -10,7 +10,7 @@ import { Input } from "@/shared/ui/input/input";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/login/model/useAuth";
 import type { ApiError } from "@/features/auth/login/api/type";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "@/features/providers/UserProvider";
 
 function LoginForm({
@@ -25,14 +25,21 @@ function LoginForm({
   const { refreshUser } = useUser();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+
+  const [searchParams] = useSearchParams();
+
+  const returnUrl = searchParams.get("callback");
   
   async function submit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
 
     try {
       const response = await login({ email, password });
-      if (response) {
-        await refreshUser();
+      await refreshUser();
+
+      if (returnUrl) {
+        window.location.href = returnUrl;
+      } else if (response) {
         navigate("/home");
       }
     } catch (err) {

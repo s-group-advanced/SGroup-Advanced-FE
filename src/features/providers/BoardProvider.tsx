@@ -4,6 +4,7 @@ import type { DeleteBoardRequest, EditBoardRequest } from "@/features/boards/api
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { useWorkspaceContext } from "./WorkspaceProvider";
 import { useLists } from "../lists/index";
+import { useBoardTemplates, type CreateBoardFromTemplateRequest, type CreateBoardFromTemplateResponse } from "../board-templates";
 
 interface Board {
     id: string;
@@ -30,6 +31,7 @@ interface BoardContextType {
     fetchBoardsByWorkspace: (workspaceId: string) => Promise<void>;
     refreshBoard: (boardId: string) => Promise<void>;
     clearBoards: () => void;
+    handleCreateBoardFromTemplate: (request: CreateBoardFromTemplateRequest) => Promise<CreateBoardFromTemplateResponse>;
 }
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
@@ -42,6 +44,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
     const { getAllMemberOfBoard } = useBoards();
 
     const { getAllBoardsOfWorkspace, addBoardToWorkspace, deleteBoardToWorkspace, editBoardToWorkspace } = useBoards();
+    const { createBoardTemplate } = useBoardTemplates();
 
     const fetchBoardMetadata = async (boardId: string) => {
         try {
@@ -92,7 +95,6 @@ export function BoardProvider({ children }: { children: ReactNode }) {
                     projects.map(async (project) => {
                         try {
                             const data = await getAllBoardsOfWorkspace(project.id);
-                            // ✨ QUAN TRỌNG: Gán workspaceId vào mỗi board
                             const boardsWithWorkspaceId = (data as unknown as Board[]).map(board => ({
                                 ...board,
                                 workspaceId: project.id
@@ -225,6 +227,31 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    // create board from template
+    const handleCreateBoardFromTemplate = async (request: CreateBoardFromTemplateRequest): Promise<CreateBoardFromTemplateResponse> => {
+        try {
+            const response = await createBoardTemplate(request);
+            
+            if (!response?.board) {
+                throw new Error("Failed to create board from template: No board returned");
+            }
+            
+            const boardWithWorkspaceId: Board = {
+                ...(response.board as unknown as Board),
+                workspaceId: request.workspaceId,
+                listsCount: 0,
+                membersCount: 0,
+                tasksCount: 0,
+            };
+            
+            setBoards(prevBoards => [...prevBoards, boardWithWorkspaceId]);
+            
+            return response;
+        } catch (err) {
+            console.error(`Failed to create board from template: ${err}`);
+            throw err;
+        }
+    }
     return (
         <BoardContext.Provider
             value={{
@@ -241,7 +268,8 @@ export function BoardProvider({ children }: { children: ReactNode }) {
                 closeEditDialog,
                 fetchBoardsByWorkspace,
                 refreshBoard,
-                clearBoards
+                clearBoards,
+                handleCreateBoardFromTemplate
             }}
         >
             {children}

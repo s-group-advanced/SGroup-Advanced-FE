@@ -25,6 +25,12 @@ export const API_ENDPOINTS = {
     INVITE_MEMBER_TO_WORKSPACE: "/api/workspaces/members/{workspaceId}",
     ARCHIVE_WORKSPACE: "/api/workspaces/status/{workspaceId}",
     UPDATE_WORKSPACE: "/api/workspaces/{workspaceId}",
+    CREATE_LINK_INVITATION_TO_WORKSPACE:
+      "/api/workspaces/{workspaceId}/generate-invitation-link",
+    DISABLE_LINK_INVITATION_TO_WORKSPACE:
+      "/api/workspaces/{workspaceId}/invite-link/{token}",
+    GET_CURRENT_LINK_INVITATION_TO_WORKSPACE:
+      "/api/workspaces/{workspaceId}/invitation-link",
   },
   BOARD: {
     GET_BOARD_OF_WORKSPACE: "/boards",
@@ -39,6 +45,7 @@ export const API_ENDPOINTS = {
     GET_ALL_MEMBER_OF_BOARD: "/boards/{boardId}/members",
     CREATE_LABEL_ON_BOARD: "/boards/{boardId}/labels",
     GET_ALL_LABELS_OF_BOARD: "/boards/{boardId}/labels",
+    CREATE_BOARD_FROM_TEMPLATE: "/boards/template",
   },
   CARD: {
     GET_ALL_CARDS_OF_BOARD: "/boards/{boardId}/cards?archived=false",
@@ -80,6 +87,9 @@ export const API_ENDPOINTS = {
     REMOVE_CHECKLIST_ITEM_ON_CHECKLIST:
       "/cards/{cardId}/checklists/{checklistId}/items/{itemId}",
   },
+  BOARD_TEMPLATE: {
+    GET_ALL_BOARD_TEMPLATES: "/board-templates/",
+  },
 };
 
 export const AuthEndpoint = API_ENDPOINTS.AUTH;
@@ -89,3 +99,4 @@ export const BoardEndpoint = API_ENDPOINTS.BOARD;
 export const CardEndpoint = API_ENDPOINTS.CARD;
 export const ListEndpoint = API_ENDPOINTS.LIST;
 export const ChecklistEndpoint = API_ENDPOINTS.CHECKLIST;
+export const BoardTemplateEndpoint = API_ENDPOINTS.BOARD_TEMPLATE;

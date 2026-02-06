@@ -15,7 +15,8 @@ import {
   import { useState, useEffect } from "react";
   import { useBoardContext } from "@/features/providers/index";
   import type { ApiError } from "@/shared/api/fetchFactory"; 
-  
+import { FileText } from "lucide-react";
+import { PopoverTemplateBoard } from "./PopoverTemplateBoard";
   interface DialogNewBoardProps {
     headerTitle?: string;
     headerDescription?: string;
@@ -119,6 +120,23 @@ import {
             setDescription("");
         }
     };
+
+    // handle use template
+    const handleSelectTemplate = (templateId: string) => {
+        if (!templateId) return;
+        try {
+            setIsOpen(false);
+            setBoardTitle("");
+            setDescription("");
+
+            if (onBoardCreated) {
+                onBoardCreated();
+            }
+            
+        } catch (err) {
+            console.error("Error selecting template:", err);
+        }
+    }
   
     return (
         <Dialog open={isEdit ? isEditDialogOpen : isOpen} onOpenChange={handleClose}>
@@ -183,6 +201,23 @@ import {
                                 : (isEdit ? "Update Board" : "Create Board")
                             }
                         </Button>
+                        {!isEdit && (
+                            <PopoverTemplateBoard
+                            trigger={
+                                <div className="relative group">
+                                    <Button type="button">
+                                        <FileText className="w-4 h-4" />
+                                    </Button>
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                        Use template
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                            }
+                            onSelectTemplate={handleSelectTemplate}
+                            workspaceId={workspaceId ?? ""}
+                        />
+                        )}
                     </DialogFooter>
                 </form>
             </DialogContent>

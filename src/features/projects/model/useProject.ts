@@ -2,7 +2,11 @@ import type { ApiError } from "@/features/auth/login/api/type";
 import { projectApi } from "../api/projectApi";
 import type {
   ArchiveWorkspaceRequest,
+  CreateLinkInvitationToWorkspaceRequest,
+  CreateLinkInvitationToWorkspaceResponse,
   CreateWorkspaceRequest,
+  DisableLinkInvitationToWorkspaceRequest,
+  GetCurrentLinkInvitationToWorkspaceResponse,
   InviteMemberToWorkspaceRequest,
   Project,
   UpdateWorkspaceRequest,
@@ -94,6 +98,59 @@ export const useProject = () => {
     }
   };
 
+  // create link invitation to workspace
+  const createLinkInvitationToWorkspace = async (
+    request: CreateLinkInvitationToWorkspaceRequest,
+  ): Promise<CreateLinkInvitationToWorkspaceResponse> => {
+    try {
+      const response =
+        await projectApi.createLinkInvitationToWorkspace(request);
+      if (!response)
+        throw new Error("Failed to create link invitation to workspace");
+      return response;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log(
+        `Failed to create link invitation to workspace: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // disable link invitation to workspace
+  const disableLinkInvitationToWorkspace = async (
+    request: DisableLinkInvitationToWorkspaceRequest,
+  ): Promise<void> => {
+    try {
+      await projectApi.disableLinkInvitationToWorkspace(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log(
+        `Failed to disable link invitation to workspace: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // get current link invitation to workspace
+  const getCurrentLinkInvitationToWorkspace = async (
+    workspaceId: string,
+  ): Promise<GetCurrentLinkInvitationToWorkspaceResponse> => {
+    try {
+      const response =
+        await projectApi.getCurrentLinkInvitationToWorkspace(workspaceId);
+      if (!response)
+        throw new Error("Failed to get current link invitation to workspace");
+      return response;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log(
+        `Failed to get current link invitation to workspace: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
   return {
     projects,
     getAllProjectsOfUser,
@@ -102,5 +159,8 @@ export const useProject = () => {
     inviteMemberToWorkspace,
     archiveWorkspace,
     updateWorkspace,
+    createLinkInvitationToWorkspace,
+    disableLinkInvitationToWorkspace,
+    getCurrentLinkInvitationToWorkspace,
   };
 };

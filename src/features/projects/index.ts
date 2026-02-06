@@ -7,4 +7,8 @@ export type {
   InviteMemberToWorkspaceRequest,
   ArchiveWorkspaceRequest,
   UpdateWorkspaceRequest,
+  CreateLinkInvitationToWorkspaceRequest,
+  CreateLinkInvitationToWorkspaceResponse,
+  DisableLinkInvitationToWorkspaceRequest,
+  GetCurrentLinkInvitationToWorkspaceResponse,
 } from "./api/type";

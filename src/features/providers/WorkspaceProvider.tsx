@@ -1,9 +1,14 @@
 // src/features/projects/model/ProjectProvider.tsx
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { projectApi } from "../projects/api/projectApi";
-import type { ArchiveWorkspaceRequest, CreateWorkspaceRequest, CreateWorkspaceResponse, InviteMemberToWorkspaceRequest, Project } from "../projects/api/type";
-import type { GetAllMemberOfWorkspaceButNotInWorkspaceResponse, UpdateWorkspaceRequest } from "../projects/index";
+import type { ArchiveWorkspaceRequest, CreateLinkInvitationToWorkspaceRequest, CreateLinkInvitationToWorkspaceResponse, CreateWorkspaceRequest, CreateWorkspaceResponse, DisableLinkInvitationToWorkspaceRequest, InviteMemberToWorkspaceRequest, Project } from "../projects/api/type";
+import type { GetAllMemberOfWorkspaceButNotInWorkspaceResponse, GetCurrentLinkInvitationToWorkspaceResponse, UpdateWorkspaceRequest } from "../projects/index";
 
+type WorkspaceLinkInvitationState = {
+    linkInvitation: string;
+    tokenInvitation: string;
+    isCreatingLinkInvitation: boolean;
+}
 interface WorkspaceContextType {
     projects: Project[];
     isLoading: boolean;
@@ -19,6 +24,12 @@ interface WorkspaceContextType {
     openEditDialog: (workspaceId: string) => void;
     closeEditDialog: () => void;
     updateWorkspace: (request: UpdateWorkspaceRequest) => Promise<void>;
+
+    handleCreateLinkInvitationToWorkspace: (request: CreateLinkInvitationToWorkspaceRequest) => Promise<CreateLinkInvitationToWorkspaceResponse>;
+    handleDisableLinkInvitationToWorkspace: (request: DisableLinkInvitationToWorkspaceRequest) => Promise<void>;
+    getWorkspaceLinkInvitation: (workspaceId: string) => WorkspaceLinkInvitationState;
+    setWorkspaceLinkInvitation: (workspaceId: string, patch: Partial<WorkspaceLinkInvitationState>) => void;
+    fetchCurrentLinkInvitationToWorkspace: (workspaceId: string) => Promise<GetCurrentLinkInvitationToWorkspaceResponse | null>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -29,6 +40,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
     const [selectedWorkspace, setSelectedWorkspace] = useState<Project | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+    
+
+    const [workspaceLinkInvitations, setWorkspaceLinkInvitations] = useState<Record<string, WorkspaceLinkInvitationState>>({});
 
     const getAllProjectsOfUser = async () => {
         setIsLoading(true);
@@ -143,6 +158,90 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const getWorkspaceLinkInvitation = (workspaceId: string): WorkspaceLinkInvitationState => 
+        workspaceLinkInvitations[workspaceId] ?? {
+            linkInvitation: '',
+            tokenInvitation: '',
+            isCreatingLinkInvitation: false,
+        };
+
+    const setWorkspaceLinkInvitation = (
+        workspaceId: string,
+        patch: Partial<WorkspaceLinkInvitationState>
+      ) => {
+        setWorkspaceLinkInvitations(prev => ({
+          ...prev,
+          [workspaceId]: {
+            ...prev[workspaceId],
+            ...patch,
+          },
+        }));
+      };
+    // create link invitation to workspace
+    const handleCreateLinkInvitationToWorkspace = async (request: CreateLinkInvitationToWorkspaceRequest): Promise<CreateLinkInvitationToWorkspaceResponse> => {
+        try {
+            const data = await projectApi.createLinkInvitationToWorkspace(request);
+            if (!data) throw new Error("Failed to create link invitation to workspace");
+            return data;
+        } catch (err) {
+            console.error(`Failed to create link invitation to workspace: ${err}`);
+            throw err;
+        }
+    }
+
+    // disable link invitation to workspace
+    const handleDisableLinkInvitationToWorkspace = async (request: DisableLinkInvitationToWorkspaceRequest): Promise<void> => {
+        try {
+            await projectApi.disableLinkInvitationToWorkspace(request);
+        } catch (err) {
+            console.error(`Failed to disable link invitation to workspace: ${err}`);
+            throw err;
+        }
+    }
+
+    // get current link invitation to workspace
+    const fetchCurrentLinkInvitationToWorkspace = async (workspaceId: string): Promise<GetCurrentLinkInvitationToWorkspaceResponse | null> => {
+        try {
+            const res = await projectApi.getCurrentLinkInvitationToWorkspace(workspaceId);
+            if (!res?.exists) {
+                setWorkspaceLinkInvitation(workspaceId, {
+                    linkInvitation: "",
+                    tokenInvitation: "",
+                    isCreatingLinkInvitation: false,
+                });
+                return null;
+            }
+
+            const state: WorkspaceLinkInvitationState = {
+                linkInvitation: res.inviteUrl ?? "",
+                tokenInvitation: res.token ?? "",
+                isCreatingLinkInvitation: true,
+            }
+            setWorkspaceLinkInvitation(workspaceId, state);
+            return {
+                exists: true,
+                inviteUrl: state.linkInvitation,
+                token: state.tokenInvitation,
+                createdAt: res.createdAt ?? "",
+            };
+        } catch (err: any) {
+            if (err?.statusCode === 404) {
+              setWorkspaceLinkInvitation(workspaceId, {
+                linkInvitation: "",
+                tokenInvitation: "",
+                isCreatingLinkInvitation: false,
+              });
+              return {
+                exists: false,
+                inviteUrl: undefined,
+                token: undefined,
+                createdAt: undefined,
+              };
+            }
+            console.error(`Failed to get current link invitation to workspace: ${err}`);
+            throw err;
+          }
+    }
     const value: WorkspaceContextType = {
         projects,
         isLoading,
@@ -157,6 +256,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         openEditDialog,
         closeEditDialog,
         updateWorkspace,
+        handleCreateLinkInvitationToWorkspace,
+        handleDisableLinkInvitationToWorkspace,
+        getWorkspaceLinkInvitation,
+        setWorkspaceLinkInvitation,
+        fetchCurrentLinkInvitationToWorkspace,
     }
 
     return (

@@ -2,9 +2,13 @@ import { fetchFactory } from "@/shared/api";
 import { ProjectEndpoint } from "@/shared/api/endpoints";
 import type {
   ArchiveWorkspaceRequest,
+  CreateLinkInvitationToWorkspaceRequest,
+  CreateLinkInvitationToWorkspaceResponse,
   CreateWorkspaceRequest,
   CreateWorkspaceResponse,
+  DisableLinkInvitationToWorkspaceRequest,
   GetAllMemberOfWorkspaceButNotInWorkspaceResponse,
+  GetCurrentLinkInvitationToWorkspaceResponse,
   InviteMemberToWorkspaceRequest,
   Project,
   UpdateWorkspaceRequest,
@@ -69,6 +73,42 @@ export const projectApi = {
     return fetchFactory.patch<void>(
       ProjectEndpoint.UPDATE_WORKSPACE.replace("{workspaceId}", workspaceId),
       body,
+    );
+  },
+
+  // create link invitation to workspace
+  createLinkInvitationToWorkspace: (
+    request: CreateLinkInvitationToWorkspaceRequest,
+  ): Promise<CreateLinkInvitationToWorkspaceResponse> => {
+    return fetchFactory.post<CreateLinkInvitationToWorkspaceResponse>(
+      ProjectEndpoint.CREATE_LINK_INVITATION_TO_WORKSPACE.replace(
+        "{workspaceId}",
+        request.workspaceId,
+      ),
+    );
+  },
+
+  // disable link invitation to workspace
+  disableLinkInvitationToWorkspace: (
+    request: DisableLinkInvitationToWorkspaceRequest,
+  ): Promise<void> => {
+    return fetchFactory.delete<void>(
+      ProjectEndpoint.DISABLE_LINK_INVITATION_TO_WORKSPACE.replace(
+        "{workspaceId}",
+        request.workspaceId,
+      ).replace("{token}", request.token),
+    );
+  },
+
+  // get current link invitation to workspace
+  getCurrentLinkInvitationToWorkspace: (
+    workspaceId: string,
+  ): Promise<GetCurrentLinkInvitationToWorkspaceResponse> => {
+    return fetchFactory.get<GetCurrentLinkInvitationToWorkspaceResponse>(
+      ProjectEndpoint.GET_CURRENT_LINK_INVITATION_TO_WORKSPACE.replace(
+        "{workspaceId}",
+        workspaceId,
+      ),
     );
   },
 };

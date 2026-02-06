@@ -6,6 +6,7 @@ import type { GetAllMemberOfWorkspaceButNotInWorkspaceResponse } from "@/feature
 import { useWorkspaceContext } from "@/features/providers/WorkspaceProvider";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
 import { toast } from "sonner";
+import { LinkIcon } from "lucide-react";
 
 interface InviteToWorkspaceProps {
     isOpen?: boolean;
@@ -16,18 +17,29 @@ interface InviteToWorkspaceProps {
 
 export function InviteToWorkspace({ isOpen, onOpenChange, triggerButton, workspaceId }: InviteToWorkspaceProps) {
     const [email, setEmail] = useState("");
-    const [isSendingEmail, setIsSendingEmail] = useState(false); // ✅ State riêng cho Send Invitation
-    const [invitingUserIds, setInvitingUserIds] = useState<string[]>([]); // ✅ Track users đang được invite
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [invitingUserIds, setInvitingUserIds] = useState<string[]>([]);
     const [allUsers, setAllUsers] = useState<GetAllMemberOfWorkspaceButNotInWorkspaceResponse[]>([]);
     const [invitedUsers, setInvitedUsers] = useState<string[]>([]); 
-    
-    const { fetchAllMemberOfWorkspaceButNotInWorkspace, handleInviteMemberToWorkspace } = useWorkspaceContext();
+    const { 
+        fetchAllMemberOfWorkspaceButNotInWorkspace, 
+        handleInviteMemberToWorkspace, 
+        handleCreateLinkInvitationToWorkspace, 
+        handleDisableLinkInvitationToWorkspace, 
+        getWorkspaceLinkInvitation, setWorkspaceLinkInvitation, 
+        fetchCurrentLinkInvitationToWorkspace,
+    } = useWorkspaceContext();
 
+    const { linkInvitation, tokenInvitation, isCreatingLinkInvitation } = getWorkspaceLinkInvitation(workspaceId);
     useEffect(() => {
         if (isOpen) {
             setInvitedUsers([]);
             setInvitingUserIds([]); 
             fetchAllMemberOfWorkspaceButNotInWorkspaceData();
+
+            fetchCurrentLinkInvitationToWorkspace(workspaceId).catch(() => {
+
+            });
         }
     }, [isOpen, workspaceId]);
 
@@ -83,6 +95,61 @@ export function InviteToWorkspace({ isOpen, onOpenChange, triggerButton, workspa
             });
         } finally {
             setInvitingUserIds(prev => prev.filter(id => id !== user.id)); 
+        }
+    }
+
+    // create link invitation to workspace
+    const createLinkInvitationToWorkspace = async (): Promise<void> => {
+        try {
+            const data = await handleCreateLinkInvitationToWorkspace({
+                workspaceId,
+            });
+            setWorkspaceLinkInvitation(workspaceId, {
+                linkInvitation: data.inviteUrl,
+                tokenInvitation: data.token,
+                isCreatingLinkInvitation: true,
+            });
+
+            // auto add link invitation to clipboard
+            navigator.clipboard.writeText(data.inviteUrl);
+            toast.success("Link invitation copied to clipboard.", {
+                position: "top-center",
+            });
+        } catch (err) {
+            console.error(`Failed to create link invitation to workspace: ${err}`);
+            toast.error("Failed to create link invitation to workspace. Please try again.", {
+                position: "top-center",
+            });
+            setWorkspaceLinkInvitation(workspaceId, {
+                isCreatingLinkInvitation: false,
+            });
+        }
+    }
+
+    // disable link invitation to workspace
+    const disableLinkInvitationToWorkspace = async (): Promise<void> => {
+        try {
+            await handleDisableLinkInvitationToWorkspace({
+                workspaceId,
+                token: tokenInvitation,
+            });
+            setWorkspaceLinkInvitation(workspaceId, {
+                linkInvitation: "",
+                tokenInvitation: "",
+                isCreatingLinkInvitation: false,
+            });
+            toast.success("Link invitation disabled.", {
+                position: "top-center",
+            });
+        } catch (err) {
+            console.error(`Failed to disable link invitation to workspace: ${err}`);
+            toast.error("Failed to disable link invitation to workspace. Please try again.", {
+                position: "top-center",
+            });
+        } finally {
+            setWorkspaceLinkInvitation(workspaceId, {
+                isCreatingLinkInvitation: false,
+            });
         }
     }
 
@@ -190,6 +257,40 @@ export function InviteToWorkspace({ isOpen, onOpenChange, triggerButton, workspa
                             Cancel
                         </Button>
                     </DialogClose>
+                </div>
+                
+                {/* Invite join to workspace by via link invitation */}
+                <div className="space-y-3 flex items-center justify-between">
+                    <div className="flex flex-col items-start">
+                        <label className="text-xs font-semibold text-gray-900 flex items-center  gap-2">
+                            Invite join to workspace by via link invitation
+                        </label>
+                        {isCreatingLinkInvitation && (
+                            <a 
+                                href="#" 
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    disableLinkInvitationToWorkspace();
+                                }}
+                                className="text-xs text-blue-500 underline hover:text-blue-700"
+                            >
+                                Disable link
+                            </a>
+                        )}
+                        
+                    </div>
+                    <Button 
+                        variant="outline" 
+                        onClick={isCreatingLinkInvitation ? () => {
+                            navigator.clipboard.writeText(linkInvitation);
+                            toast.success("Link invitation copied to clipboard.", {
+                                position: "top-center",
+                            });
+                        } : createLinkInvitationToWorkspace}
+                    >
+                        <LinkIcon className="w-4 h-4" />
+                        {isCreatingLinkInvitation ? "Copy Link" : "Create Link"}
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>
