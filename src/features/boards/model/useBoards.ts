@@ -16,6 +16,10 @@ import type {
   AcceptInvitationToBoardResponse,
   GetAllMemberOfBoardRequest,
   GetAllMemberOfBoardResponse,
+  GetInviteLinkJoinToBoardRequest,
+  GetInviteLinkJoinToBoardResponse,
+  JoinBoardByInviteLinkRequest,
+  JoinBoardByInviteLinkResponse,
 } from "../api/type";
 
 export const useBoards = () => {
@@ -157,6 +161,38 @@ export const useBoards = () => {
     }
   };
 
+  // get invite link join to board
+  const getInviteLinkJoinToBoard = async (
+    request: GetInviteLinkJoinToBoardRequest,
+  ): Promise<GetInviteLinkJoinToBoardResponse> => {
+    try {
+      const data = await boardApi.getInviteLinkJoinToBoard(request);
+      if (!data) throw new Error("Failed to get invite link join to board");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to get invite link join to board: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // join board by invite link
+  const joinBoardByInviteLink = async (
+    request: JoinBoardByInviteLinkRequest,
+  ): Promise<JoinBoardByInviteLinkResponse> => {
+    try {
+      const data = await boardApi.joinBoardByInviteLink(request);
+      if (!data) throw new Error("Failed to join board by invite link");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to join board by invite link: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllBoardsOfWorkspace,
     addBoardToWorkspace,
@@ -167,5 +203,7 @@ export const useBoards = () => {
     inviteUserToBoard,
     acceptInvitationToBoard,
     getAllMemberOfBoard,
+    getInviteLinkJoinToBoard,
+    joinBoardByInviteLink,
   };
 };

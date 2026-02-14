@@ -13,8 +13,12 @@ import type {
   GetAllMemberOfWorkspaceButNotInBoardResponse,
   GetBoardByIdRequest,
   GetBoardByIdResponse,
+  GetInviteLinkJoinToBoardRequest,
+  GetInviteLinkJoinToBoardResponse,
   InviteUserToBoardRequest,
   InviteUserToBoardResponse,
+  JoinBoardByInviteLinkRequest,
+  JoinBoardByInviteLinkResponse,
 } from "./type";
 import { fetchFactory } from "@/shared/api";
 
@@ -105,6 +109,27 @@ export const boardApi = {
         "{boardId}",
         request.boardId,
       ),
+    );
+  },
+
+  // get invite link join to board
+  getInviteLinkJoinToBoard: (
+    request: GetInviteLinkJoinToBoardRequest,
+  ): Promise<GetInviteLinkJoinToBoardResponse> => {
+    return fetchFactory.get<GetInviteLinkJoinToBoardResponse>(
+      BoardEndpoint.GET_INVITE_LINK_JOIN_TO_BOARD.replace(
+        "{boardId}",
+        request.boardId,
+      ),
+    );
+  },
+
+  // join board by invite link
+  joinBoardByInviteLink: (
+    request: JoinBoardByInviteLinkRequest,
+  ): Promise<JoinBoardByInviteLinkResponse> => {
+    return fetchFactory.get<JoinBoardByInviteLinkResponse>(
+      BoardEndpoint.JOIN_BOARD_BY_INVITE_LINK.replace("{token}", request.token),
     );
   },
 };

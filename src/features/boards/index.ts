@@ -15,4 +15,8 @@ export type {
   AcceptInvitationToBoardResponse,
   GetAllMemberOfBoardRequest,
   GetAllMemberOfBoardResponse,
+  GetInviteLinkJoinToBoardRequest,
+  GetInviteLinkJoinToBoardResponse,
+  JoinBoardByInviteLinkRequest,
+  JoinBoardByInviteLinkResponse,
 } from "./api/type";

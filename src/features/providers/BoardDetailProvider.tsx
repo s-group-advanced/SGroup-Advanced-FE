@@ -2,7 +2,7 @@ import type React from "react";
 import { useBoards, type Board } from "@/features/boards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { GetAllMemberOfBoardResponse, GetAllMemberOfWorkspaceButNotInBoardResponse, GetBoardByIdRequest, GetBoardByIdResponse } from "@/features/boards/api/type";
+import type { GetAllMemberOfBoardResponse, GetAllMemberOfWorkspaceButNotInBoardResponse, GetBoardByIdRequest, GetBoardByIdResponse, GetInviteLinkJoinToBoardRequest, GetInviteLinkJoinToBoardResponse, JoinBoardByInviteLinkRequest, JoinBoardByInviteLinkResponse } from "@/features/boards/api/type";
 import { useBoardContext } from "./BoardProvider";
 
 interface BoardDetailContextType {
@@ -18,6 +18,9 @@ interface BoardDetailContextType {
     fetchAllMemberOfWorkspaceButNotInBoard: (boardId: string) => Promise<GetAllMemberOfWorkspaceButNotInBoardResponse[]>;
     fetchAllMemberOfBoard: (boardId: string) => Promise<void>;
     refreshMembersOfBoard: () => void;
+
+    handleGetInviteLinkJoinToBoard: (request: GetInviteLinkJoinToBoardRequest) => Promise<GetInviteLinkJoinToBoardResponse>;
+    handleJoinBoardByInviteLink: (request: JoinBoardByInviteLinkRequest) => Promise<JoinBoardByInviteLinkResponse>;
 }
 
 const BoardDetailContext = createContext<BoardDetailContextType | undefined>(undefined);
@@ -29,7 +32,7 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
     const [error, setError] = useState<string | null>(null);
     const [membersOfBoard, setMembersOfBoard] = useState<GetAllMemberOfBoardResponse[]>([]);
     const { refreshBoard, setBoards } = useBoardContext();
-    const { getBoardById, editBoardToWorkspace, getAllMemberOfWorkspaceButNotInBoard, getAllMemberOfBoard } = useBoards();
+    const { getBoardById, editBoardToWorkspace, getAllMemberOfWorkspaceButNotInBoard, getAllMemberOfBoard, getInviteLinkJoinToBoard, joinBoardByInviteLink } = useBoards();
 
     // fetch board data
     useEffect(() => {
@@ -57,7 +60,6 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
 
     const updateBoardName = async (name: string) => {
         try {
-
             // if nothing changed, return
             if (!name.trim() || name.trim() === board?.name) {
                 return;
@@ -116,6 +118,30 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
         }
     }
 
+    // get invite link join to board
+    const handleGetInviteLinkJoinToBoard = async (request: GetInviteLinkJoinToBoardRequest) => {
+        try {
+            const data = await getInviteLinkJoinToBoard(request);
+            return data;
+        } catch (err) {
+            setError("Failed to get invite link join to board");
+            console.error(`Failed to get invite link join to board: ${err}`);
+            throw err;
+        }
+    }
+
+    // join board by invite link
+    const handleJoinBoardByInviteLink = async (request: JoinBoardByInviteLinkRequest) => {
+        try {
+            const data = await joinBoardByInviteLink(request);
+            return data;
+        } catch (err) {
+            setError("Failed to join board by invite link");
+            console.error(`Failed to join board by invite link: ${err}`);
+            throw err;
+        }
+    }
+
     const value : BoardDetailContextType = {
         board,
         membersOfBoard,
@@ -126,6 +152,8 @@ export function BoardDetailProvider({ children }: { children: React.ReactNode })
         fetchAllMemberOfWorkspaceButNotInBoard,
         fetchAllMemberOfBoard,
         refreshMembersOfBoard,
+        handleGetInviteLinkJoinToBoard,
+        handleJoinBoardByInviteLink,
     }
 
     return (

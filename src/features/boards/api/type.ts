@@ -107,3 +107,20 @@ export interface GetAllMemberOfBoardResponse {
   permissions: string[];
   user: User;
 }
+
+export interface GetInviteLinkJoinToBoardRequest {
+  boardId: string;
+}
+
+export interface GetInviteLinkJoinToBoardResponse {
+  inviteUrl: string;
+  token: string;
+}
+
+export interface JoinBoardByInviteLinkRequest {
+  token: string;
+}
+
+export interface JoinBoardByInviteLinkResponse {
+  board: Board;
+}

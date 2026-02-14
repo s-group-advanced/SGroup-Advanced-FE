@@ -49,9 +49,16 @@ function LoginForm({
   }
 
   const handleGoogleLogin = async () => {
-    const backendURL = import.meta.env.VITE_API_BASE_URL
-    window.location.href = `${backendURL}/auth/google`
-  }
+    const backendURL = import.meta.env.VITE_API_BASE_URL;
+  
+    // Save callback to sessionStorage
+    if (returnUrl) {
+      sessionStorage.setItem("callback", returnUrl);
+    }
+  
+    // Redirect Google OAuth
+    window.location.href = `${backendURL}/auth/google`;
+  };
 
   return (
     <form className={cn(className)} {...props}>

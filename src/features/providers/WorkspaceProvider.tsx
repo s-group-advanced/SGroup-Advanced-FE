@@ -41,8 +41,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const [selectedWorkspace, setSelectedWorkspace] = useState<Project | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-    
-
     const [workspaceLinkInvitations, setWorkspaceLinkInvitations] = useState<Record<string, WorkspaceLinkInvitationState>>({});
 
     const getAllProjectsOfUser = async () => {

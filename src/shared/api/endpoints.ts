@@ -46,6 +46,8 @@ export const API_ENDPOINTS = {
     CREATE_LABEL_ON_BOARD: "/boards/{boardId}/labels",
     GET_ALL_LABELS_OF_BOARD: "/boards/{boardId}/labels",
     CREATE_BOARD_FROM_TEMPLATE: "/boards/template",
+    GET_INVITE_LINK_JOIN_TO_BOARD: "/boards/{boardId}/invite-link",
+    JOIN_BOARD_BY_INVITE_LINK: "/boards/invite/{token}",
   },
   CARD: {
     GET_ALL_CARDS_OF_BOARD: "/boards/{boardId}/cards?archived=false",
