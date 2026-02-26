@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useBoardContext } from "@/features/providers";
 import { useLists } from "@/features/lists/index";
 import { toast } from "sonner";
+import { DialogOptionToCard } from "./DialogOptionToCard";
 
 interface DialogCardToListProps {
     isOpen?: boolean;
@@ -518,6 +519,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                <DialogOptionToCard cardId={card.id} />
                 <DialogHeader>
                     <div className="flex items-center justify-between">
                     <Popover open={isMovePopoverOpen} onOpenChange={setIsMovePopoverOpen}>

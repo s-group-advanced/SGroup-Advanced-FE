@@ -22,6 +22,7 @@ export interface Card {
   cardMembers: CardMember[];
   assigned_users: AssignedUser[];
   status: string;
+  is_template: boolean;
 }
 
 interface CardMember {
@@ -169,5 +170,45 @@ export interface UpdateDueDateOfCardRequest {
 }
 
 export interface UpdateDueDateOfCardResponse {
+  card: Card;
+}
+
+export interface ToggleTemplateCardRequest {
+  cardId: string;
+}
+
+export interface ToggleTemplateCardResponse {
+  id: string;
+  is_template: boolean;
+}
+
+export interface GetAllTemplatesOfBoardRequest {
+  boardId: string;
+}
+
+export interface GetAllTemplatesOfBoardResponse {
+  cards: Card[];
+}
+
+export interface CreateCardFromTemplateRequest {
+  templateCardId: string;
+  list_id: string;
+  title?: string;
+  include_checklists?: boolean;
+  include_labels?: boolean;
+  include_members: boolean;
+}
+
+export interface CreateCardFromTemplateResponse {
+  card: Card;
+  attachments: any[];
+}
+
+export interface CreateNewCardTemplateRequest {
+  title: string;
+  list_id: string;
+}
+
+export interface CreateNewCardTemplateResponse {
   card: Card;
 }

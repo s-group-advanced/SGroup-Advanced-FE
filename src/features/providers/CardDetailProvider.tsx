@@ -1,4 +1,4 @@
-import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest } from "@/features/cards/api/type";
+import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest, GetAllTemplatesOfBoardRequest, GetAllTemplatesOfBoardResponse, CreateCardFromTemplateResponse, CreateCardFromTemplateRequest, CreateNewCardTemplateResponse, CreateNewCardTemplateRequest } from "@/features/cards/api/type";
 import { type Card, type GetAllCardsOfBoardResponse, type GetAllCardsOfBoardRequest, useCards, type CreateCardRequest, type CreateCardResponse, type DeleteCardResponse, type DeleteCardRequest } from "@/features/cards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -26,6 +26,10 @@ interface CardDetailContextType {
     handleMoveCardToList: (request: MoveCardToListRequest) => Promise<void>;
     handleUpdateDueDateOfCard: (request: UpdateDueDateOfCardRequest) => Promise<UpdateDueDateOfCardResponse>;
     refreshCards: (boardId?: string) => Promise<void>;
+    handleToggleTemplateCard: (cardId: string) => Promise<void>;
+    fetchAllTemplatesOfBoard: (request: GetAllTemplatesOfBoardRequest) => Promise<GetAllTemplatesOfBoardResponse>;
+    handleCreateCardFromTemplate: (request: CreateCardFromTemplateRequest) => Promise<CreateCardFromTemplateResponse>;
+    handleCreateNewCardTemplate: (request: CreateNewCardTemplateRequest) => Promise<CreateNewCardTemplateResponse>;
 }
 
 const CardDetailContext = createContext<CardDetailContextType | undefined>(undefined);
@@ -36,7 +40,24 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const { getAllCardsOfBoard, createCard, deleteCard, updateCard, assignUserToCard, unassignUserFromCard, createCommentOnCard, getAllCommentsOfCard, moveCardToList, updateDueDateOfCard, updateCommentOnCard, deleteCommentOnCard } = useCards();
+    const { 
+        getAllCardsOfBoard, 
+        createCard, 
+        deleteCard, 
+        updateCard, 
+        assignUserToCard, 
+        unassignUserFromCard, 
+        createCommentOnCard, 
+        getAllCommentsOfCard, 
+        moveCardToList, 
+        updateDueDateOfCard, 
+        updateCommentOnCard, 
+        deleteCommentOnCard, 
+        toggleTemplateCard,
+        getAllTemplatesOfBoard,
+        createCardFromTemplate,
+        createNewCardTemplate
+    } = useCards();
 
     // get data from api
     useEffect(() => {
@@ -318,7 +339,90 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         if (!id) return;
         await fetchCards(id);
     };
+
+    // toggle template card
+    const handleToggleTemplateCard = async (cardId: string) => {
+        // Get current card
+        const prevCard = cards.find(c => c.id === cardId);
+
+        if (!prevCard) return;
+
+        const newIsTemplate = !prevCard.is_template;
+
+        setCards(prevCards =>
+            prevCards.map(card => card.id == cardId ? { ...card, is_template: newIsTemplate } : card)
+        )
+        try {
+            const response = await toggleTemplateCard({ cardId });
+
+            setCards(prevCards => 
+                prevCards.map(card => card.id == cardId ? { ...card, is_template: response.is_template } : card)
+            );
+        } catch (err) {
+            console.error(`Failed to toggle template card: ${err}`);
+            // Rollback on error
+            setCards(prevCards =>
+                prevCards.map(card =>
+                card.id === cardId
+                    ? { ...card, is_template: prevCard.is_template }
+                    : card
+                )
+            );
+      
+      throw err;
+        }
+    }
+
+    // get all templates of board
+    const fetchAllTemplatesOfBoard = async (request: GetAllTemplatesOfBoardRequest) : Promise<GetAllTemplatesOfBoardResponse> => {
+        try {
+            const data = await getAllTemplatesOfBoard(request);
+            if (!data) throw new Error("Failed to get all templates of board");
+            return data;
+        } catch (err) {
+            setError("Failed to get all templates of board");
+            console.error(`Failed to get all templates of board: ${err}`);
+            throw err;
+        }
+    }
+
+    // create card from template
+    const handleCreateCardFromTemplate = async (request: CreateCardFromTemplateRequest) : Promise<CreateCardFromTemplateResponse> => {
+        const prevCards = [...cards];
+        try {
+            const data = await createCardFromTemplate(request);
+            if (!data) throw new Error("Failed to create card from template");
+            
+            if (boardId) {
+                await fetchCards(boardId);
+            }
+
+            return data;
+        } catch (err) {
+            console.error(`Failed to create card from template: ${err}`);
+            setError("Failed to create card from template");
+            setCards(prevCards);
+            throw err;
+        }
+    };
     
+    // create new card template
+    const handleCreateNewCardTemplate = async (request: CreateNewCardTemplateRequest) : Promise<CreateNewCardTemplateResponse> => {
+        try {
+            const data = await createNewCardTemplate(request);
+            if (!data) throw new Error("Failed to create new card template");
+
+            if (boardId) {
+                await fetchCards(boardId);
+            }
+
+            return data;
+        } catch (err) {
+            setError("Failed to create new card template");
+            console.error(`Failed to create new card template: ${err}`);
+            throw err;
+        }
+    }
     const value: CardDetailContextType = {
         cards,
         isLoading,
@@ -339,6 +443,10 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         handleUpdateCommentOnCard,
         handleDeleteCommentOnCard,
         refreshCards,
+        handleToggleTemplateCard,
+        fetchAllTemplatesOfBoard,
+        handleCreateCardFromTemplate,
+        handleCreateNewCardTemplate,
     }
 
     return (

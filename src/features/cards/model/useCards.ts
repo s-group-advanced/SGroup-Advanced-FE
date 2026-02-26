@@ -2,10 +2,14 @@ import type { ApiError } from "@/shared/api/fetchFactory";
 import type {
   AssignedUserToCardRequest,
   AssignedUserToCardResponse,
+  CreateCardFromTemplateRequest,
+  CreateCardFromTemplateResponse,
   CreateCardRequest,
   CreateCardResponse,
   CreateCommentOnCardRequest,
   CreateCommentOnCardResponse,
+  CreateNewCardTemplateRequest,
+  CreateNewCardTemplateResponse,
   DeleteCardRequest,
   DeleteCardResponse,
   DeleteCommentOnCardRequest,
@@ -13,7 +17,11 @@ import type {
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
   GetAllCommentsOfCardResponse,
+  GetAllTemplatesOfBoardRequest,
+  GetAllTemplatesOfBoardResponse,
   MoveCardToListRequest,
+  ToggleTemplateCardRequest,
+  ToggleTemplateCardResponse,
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
@@ -197,6 +205,68 @@ export const useCards = () => {
     }
   };
 
+  // toggle template card
+  const toggleTemplateCard = async (
+    request: ToggleTemplateCardRequest,
+  ): Promise<ToggleTemplateCardResponse> => {
+    try {
+      const data = await cardApi.toggleTemplateCard(request);
+      if (!data) throw new Error("Failed to toggle template card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to toggle template card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // get all templates of board
+  const getAllTemplatesOfBoard = async (
+    request: GetAllTemplatesOfBoardRequest,
+  ): Promise<GetAllTemplatesOfBoardResponse> => {
+    try {
+      const data = await cardApi.getAllTemplatesOfBoard(request);
+      if (!data) throw new Error("Failed to get all templates of board");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to get all templates of board: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // create card from template
+  const createCardFromTemplate = async (
+    request: CreateCardFromTemplateRequest,
+  ): Promise<CreateCardFromTemplateResponse> => {
+    try {
+      const data = await cardApi.createCardFromTemplate(request);
+      if (!data) throw new Error("Failed to create card from template");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to create card from template: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // create new card template
+  const createNewCardTemplate = async (
+    request: CreateNewCardTemplateRequest,
+  ): Promise<CreateNewCardTemplateResponse> => {
+    try {
+      const data = await cardApi.createNewCardTemplate(request);
+      if (!data) throw new Error("Failed to create new card template");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to create new card template: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllCardsOfBoard,
     createCard,
@@ -210,5 +280,9 @@ export const useCards = () => {
     updateDueDateOfCard,
     updateCommentOnCard,
     deleteCommentOnCard,
+    toggleTemplateCard,
+    getAllTemplatesOfBoard,
+    createCardFromTemplate,
+    createNewCardTemplate,
   };
 };

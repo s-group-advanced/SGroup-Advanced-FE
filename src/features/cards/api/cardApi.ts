@@ -2,10 +2,14 @@ import { fetchFactory } from "@/shared/api";
 import type {
   AssignedUserToCardRequest,
   AssignedUserToCardResponse,
+  CreateCardFromTemplateRequest,
+  CreateCardFromTemplateResponse,
   CreateCardRequest,
   CreateCardResponse,
   CreateCommentOnCardRequest,
   CreateCommentOnCardResponse,
+  CreateNewCardTemplateRequest,
+  CreateNewCardTemplateResponse,
   DeleteCardRequest,
   DeleteCardResponse,
   DeleteCommentOnCardRequest,
@@ -13,7 +17,11 @@ import type {
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
   GetAllCommentsOfCardResponse,
+  GetAllTemplatesOfBoardRequest,
+  GetAllTemplatesOfBoardResponse,
   MoveCardToListRequest,
+  ToggleTemplateCardRequest,
+  ToggleTemplateCardResponse,
   UnassignUserFromCardRequest,
   UpdateCardRequest,
   UpdateCardResponse,
@@ -141,6 +149,52 @@ export const cardApi = {
     return fetchFactory.patch<UpdateDueDateOfCardResponse>(
       CardEndpoint.UPDATE_DUE_DATE_OF_CARD.replace("{cardId}", cardId),
       body,
+    );
+  },
+
+  // toggle template card
+  toggleTemplateCard: (
+    request: ToggleTemplateCardRequest,
+  ): Promise<ToggleTemplateCardResponse> => {
+    const { cardId } = request;
+    return fetchFactory.patch<ToggleTemplateCardResponse>(
+      CardEndpoint.TOGGLE_TEMPLATE_CARD.replace("{cardId}", cardId),
+    );
+  },
+
+  // get all templates of board
+  getAllTemplatesOfBoard: (
+    request: GetAllTemplatesOfBoardRequest,
+  ): Promise<GetAllTemplatesOfBoardResponse> => {
+    return fetchFactory.get<GetAllTemplatesOfBoardResponse>(
+      CardEndpoint.GET_ALL_TEMPLATES_OF_BOARD.replace(
+        "{boardId}",
+        request.boardId,
+      ),
+    );
+  },
+
+  // create card from template
+  createCardFromTemplate: (
+    request: CreateCardFromTemplateRequest,
+  ): Promise<CreateCardFromTemplateResponse> => {
+    const { templateCardId, ...body } = request;
+    return fetchFactory.post<CreateCardFromTemplateResponse>(
+      CardEndpoint.CREATE_CARD_FROM_TEMPLATE.replace(
+        "{templateCardId}",
+        templateCardId,
+      ),
+      body,
+    );
+  },
+
+  // create new card template
+  createNewCardTemplate: (
+    request: CreateNewCardTemplateRequest,
+  ): Promise<CreateNewCardTemplateResponse> => {
+    return fetchFactory.post<CreateNewCardTemplateResponse>(
+      CardEndpoint.CREATE_NEW_CARD_TEMPLATE,
+      request,
     );
   },
 };

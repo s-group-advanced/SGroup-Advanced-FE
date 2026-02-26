@@ -66,6 +66,10 @@ export const API_ENDPOINTS = {
     REMOVE_LABEL_FROM_CARD: "/cards/{cardId}/labels/{labelId}",
     MOVE_CARD_TO_LIST: "/cards/{cardId}/move",
     UPDATE_DUE_DATE_OF_CARD: "/cards/{cardId}/due-date",
+    TOGGLE_TEMPLATE_CARD: "/cards/{cardId}/toggle-template",
+    GET_ALL_TEMPLATES_OF_BOARD: "/cards/templates/board/{boardId}",
+    CREATE_CARD_FROM_TEMPLATE: "/cards/{templateCardId}/use-template",
+    CREATE_NEW_CARD_TEMPLATE: "/cards/templates",
   },
   LIST: {
     GET_ALL_LISTS_OF_BOARD: "/boards/{boardId}/lists?archived=false",

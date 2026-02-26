@@ -4,6 +4,7 @@ import { DialogCardToList } from "../Dialog/DialogCardToList";
 import { CardMemberAvatars } from "./CardMemberAvatars";
 import { Draggable } from "@hello-pangea/dnd";
 import { formatDDMMYYYY } from "@/shared/utils/formatDDMMYYYY";
+import { FiFileText } from "react-icons/fi";
 
 interface CardInListProps {
     card: Card;
@@ -29,7 +30,7 @@ export function CardInList({ card, listName, index }: CardInListProps) {
         <Draggable draggableId={card.id} index={index}>
             {(provided, snapshot) => (
                 <div 
-                    className={`bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+                    className={`bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative ${
                         snapshot.isDragging ? 'rotate-3 shadow-xl' : ''
                     }`}
                     ref={provided.innerRef}
@@ -41,6 +42,15 @@ export function CardInList({ card, listName, index }: CardInListProps) {
                         setIsDialogOpen(true);
                     }}
                 >
+                    {/* label template */}
+                    {card.is_template && (
+                        <div className="flex items-center gap-1 absolute top-2 right-2">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-md border border-purple-200">
+                                <FiFileText className="w-3 h-3" />
+                                Template
+                            </span>
+                        </div>
+                    )}
                     <h4 className="text-sm font-medium text-gray-900 mb-3 mt-6">
                         {card.title}
                     </h4>

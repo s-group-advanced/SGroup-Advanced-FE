@@ -23,4 +23,12 @@ export type {
   UpdateCommentOnCardRequest,
   UpdateCommentOnCardResponse,
   DeleteCommentOnCardRequest,
+  ToggleTemplateCardRequest,
+  ToggleTemplateCardResponse,
+  GetAllTemplatesOfBoardRequest,
+  GetAllTemplatesOfBoardResponse,
+  CreateCardFromTemplateRequest,
+  CreateCardFromTemplateResponse,
+  CreateNewCardTemplateRequest,
+  CreateNewCardTemplateResponse,
 } from "./api/type";

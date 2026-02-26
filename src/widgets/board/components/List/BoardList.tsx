@@ -12,6 +12,7 @@ import { Select, SelectTrigger, SelectValue, SelectItem, SelectContent } from "@
 import { Button } from "@/shared/ui/button";
 import { useBoardContext } from "@/features/providers";
 import { toast } from "sonner";
+import { AddCardFromTemplate } from "./AddCardFromTemplate";
 
 interface BoardListProps {
     list: List;
@@ -522,13 +523,18 @@ export function BoardList({ list, index, isDraggingList }: BoardListProps) {
                                 </div>
                             </div>
                         ) : (
-                            <button
-                                onClick={() => setIsAddingItem(true)}
-                                className="w-full flex items-center gap-2 p-2 text-sm text-gray-600 hover:bg-gray-200 rounded-md transition-colors cursor-pointer font-semibold mb-3"
-                            >
-                                <FiPlus className="w-4 h-4" />
-                                Add a card
-                            </button>
+                            <>
+                            <div className="flex items-center gap-2 justify-between">
+                                <button
+                                    onClick={() => setIsAddingItem(true)}
+                                    className="w-full flex items-center gap-2 p-2 text-sm text-gray-600 hover:bg-gray-200 rounded-md transition-colors cursor-pointer font-semibold mb-3"
+                                >
+                                    <FiPlus className="w-4 h-4" />
+                                    Add a card
+                                </button>
+                                <AddCardFromTemplate listId={list.id} />
+                            </div>
+                            </>
                         )}
                     </div>
                 </div>
