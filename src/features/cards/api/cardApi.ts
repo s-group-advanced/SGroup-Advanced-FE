@@ -2,6 +2,8 @@ import { fetchFactory } from "@/shared/api";
 import type {
   AssignedUserToCardRequest,
   AssignedUserToCardResponse,
+  CopyCardToAnotherListRequest,
+  CopyCardToAnotherListResponse,
   CreateCardFromTemplateRequest,
   CreateCardFromTemplateResponse,
   CreateCardRequest,
@@ -195,6 +197,17 @@ export const cardApi = {
     return fetchFactory.post<CreateNewCardTemplateResponse>(
       CardEndpoint.CREATE_NEW_CARD_TEMPLATE,
       request,
+    );
+  },
+
+  // copy card to another list
+  copyCardToAnotherList: (
+    request: CopyCardToAnotherListRequest,
+  ): Promise<CopyCardToAnotherListResponse> => {
+    const { cardId, ...body } = request;
+    return fetchFactory.post<CopyCardToAnotherListResponse>(
+      CardEndpoint.COPY_CARD_TO_ANOTHER_LIST.replace("{cardId}", cardId),
+      body,
     );
   },
 };

@@ -212,3 +212,15 @@ export interface CreateNewCardTemplateRequest {
 export interface CreateNewCardTemplateResponse {
   card: Card;
 }
+
+export interface CopyCardToAnotherListRequest {
+  cardId: string;
+  targetListId: string;
+  title?: string;
+  newIndex?: number;
+  includeChecklists?: boolean;
+  includeLabels?: boolean;
+  includeMembers?: boolean;
+}
+
+export type CopyCardToAnotherListResponse = Card;

@@ -1,4 +1,4 @@
-import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest, GetAllTemplatesOfBoardRequest, GetAllTemplatesOfBoardResponse, CreateCardFromTemplateResponse, CreateCardFromTemplateRequest, CreateNewCardTemplateResponse, CreateNewCardTemplateRequest } from "@/features/cards/api/type";
+import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest, GetAllTemplatesOfBoardRequest, GetAllTemplatesOfBoardResponse, CreateCardFromTemplateResponse, CreateCardFromTemplateRequest, CreateNewCardTemplateResponse, CreateNewCardTemplateRequest, CopyCardToAnotherListResponse, CopyCardToAnotherListRequest } from "@/features/cards/api/type";
 import { type Card, type GetAllCardsOfBoardResponse, type GetAllCardsOfBoardRequest, useCards, type CreateCardRequest, type CreateCardResponse, type DeleteCardResponse, type DeleteCardRequest } from "@/features/cards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -30,6 +30,7 @@ interface CardDetailContextType {
     fetchAllTemplatesOfBoard: (request: GetAllTemplatesOfBoardRequest) => Promise<GetAllTemplatesOfBoardResponse>;
     handleCreateCardFromTemplate: (request: CreateCardFromTemplateRequest) => Promise<CreateCardFromTemplateResponse>;
     handleCreateNewCardTemplate: (request: CreateNewCardTemplateRequest) => Promise<CreateNewCardTemplateResponse>;
+    handleCopyCardToAnotherList: (request: CopyCardToAnotherListRequest) => Promise<CopyCardToAnotherListResponse>;
 }
 
 const CardDetailContext = createContext<CardDetailContextType | undefined>(undefined);
@@ -56,7 +57,8 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         toggleTemplateCard,
         getAllTemplatesOfBoard,
         createCardFromTemplate,
-        createNewCardTemplate
+        createNewCardTemplate,
+        copyCardToAnotherList
     } = useCards();
 
     // get data from api
@@ -423,6 +425,32 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
             throw err;
         }
     }
+
+    const handleCopyCardToAnotherList = async (
+        request: CopyCardToAnotherListRequest,
+      ): Promise<CopyCardToAnotherListResponse> => {
+        const prevCards = [...cards];
+      
+        try {
+          const data = await copyCardToAnotherList(request);
+          if (!data) throw new Error("Failed to copy card to another list");
+      
+          const newCard = data;
+      
+          // If new card is on the same board as the current page refresh all cards of that board
+          if (boardId && newCard.board_id === boardId) {
+            setCards(prev => [...prev, newCard]);
+          }
+      
+          return data;
+        } catch (err) {
+          console.error("Failed to copy card to another list:", err);
+          setError("Failed to copy card to another list");
+          setCards(prevCards);
+          throw err;
+        }
+      };
+
     const value: CardDetailContextType = {
         cards,
         isLoading,
@@ -447,6 +475,7 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         fetchAllTemplatesOfBoard,
         handleCreateCardFromTemplate,
         handleCreateNewCardTemplate,
+        handleCopyCardToAnotherList,
     }
 
     return (

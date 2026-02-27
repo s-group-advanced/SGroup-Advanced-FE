@@ -132,4 +132,11 @@ export const boardApi = {
       BoardEndpoint.JOIN_BOARD_BY_INVITE_LINK.replace("{token}", request.token),
     );
   },
+
+  // get all boards that user is real member
+  getAllBoardsOfUserMemberOfWorkspace: (): Promise<Board[]> => {
+    return fetchFactory.get<Board[]>(
+      BoardEndpoint.GET_ALL_BOARDS_OF_USER_MEMBER_OF_WORKSPACE,
+    );
+  },
 };

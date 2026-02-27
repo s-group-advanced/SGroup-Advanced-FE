@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
     CREATE_BOARD_FROM_TEMPLATE: "/boards/template",
     GET_INVITE_LINK_JOIN_TO_BOARD: "/boards/{boardId}/invite-link",
     JOIN_BOARD_BY_INVITE_LINK: "/boards/invite/{token}",
+    GET_ALL_BOARDS_OF_USER_MEMBER_OF_WORKSPACE: "/boards/my-boards",
   },
   CARD: {
     GET_ALL_CARDS_OF_BOARD: "/boards/{boardId}/cards?archived=false",
@@ -70,6 +71,8 @@ export const API_ENDPOINTS = {
     GET_ALL_TEMPLATES_OF_BOARD: "/cards/templates/board/{boardId}",
     CREATE_CARD_FROM_TEMPLATE: "/cards/{templateCardId}/use-template",
     CREATE_NEW_CARD_TEMPLATE: "/cards/templates",
+    MOVE_CARD_TO_ANOTHER_LIST: "/cards/{cardId}/move",
+    COPY_CARD_TO_ANOTHER_LIST: "/cards/{cardId}/copy",
   },
   LIST: {
     GET_ALL_LISTS_OF_BOARD: "/boards/{boardId}/lists?archived=false",

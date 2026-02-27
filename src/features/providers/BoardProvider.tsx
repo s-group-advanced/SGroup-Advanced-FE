@@ -32,6 +32,7 @@ interface BoardContextType {
     refreshBoard: (boardId: string) => Promise<void>;
     clearBoards: () => void;
     handleCreateBoardFromTemplate: (request: CreateBoardFromTemplateRequest) => Promise<CreateBoardFromTemplateResponse>;
+    fetchAllBoardsOfUserMemberOfWorkspace: () => Promise<Board[]>;
 }
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
@@ -43,7 +44,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
     const { getAllListsOfBoard } = useLists();
     const { getAllMemberOfBoard } = useBoards();
 
-    const { getAllBoardsOfWorkspace, addBoardToWorkspace, deleteBoardToWorkspace, editBoardToWorkspace } = useBoards();
+    const { getAllBoardsOfWorkspace, addBoardToWorkspace, deleteBoardToWorkspace, editBoardToWorkspace, getAllBoardsOfUserMemberOfWorkspace } = useBoards();
     const { createBoardTemplate } = useBoardTemplates();
 
     const fetchBoardMetadata = async (boardId: string) => {
@@ -252,6 +253,18 @@ export function BoardProvider({ children }: { children: ReactNode }) {
             throw err;
         }
     }
+
+    // fetch all boards that user is real member
+    const fetchAllBoardsOfUserMemberOfWorkspace = async (): Promise<Board[]> => {
+        try {
+            const data = await getAllBoardsOfUserMemberOfWorkspace();
+            return data as unknown as Board[];
+        } catch (err) {
+            console.error(`Failed to fetch all boards that user is real member: ${err}`);
+            throw err;
+        }
+    }
+    
     return (
         <BoardContext.Provider
             value={{
@@ -269,7 +282,8 @@ export function BoardProvider({ children }: { children: ReactNode }) {
                 fetchBoardsByWorkspace,
                 refreshBoard,
                 clearBoards,
-                handleCreateBoardFromTemplate
+                handleCreateBoardFromTemplate,
+                fetchAllBoardsOfUserMemberOfWorkspace
             }}
         >
             {children}

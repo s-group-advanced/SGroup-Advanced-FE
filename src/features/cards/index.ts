@@ -31,4 +31,6 @@ export type {
   CreateCardFromTemplateResponse,
   CreateNewCardTemplateRequest,
   CreateNewCardTemplateResponse,
+  CopyCardToAnotherListRequest,
+  CopyCardToAnotherListResponse,
 } from "./api/type";

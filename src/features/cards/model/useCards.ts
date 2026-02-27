@@ -2,6 +2,8 @@ import type { ApiError } from "@/shared/api/fetchFactory";
 import type {
   AssignedUserToCardRequest,
   AssignedUserToCardResponse,
+  CopyCardToAnotherListRequest,
+  CopyCardToAnotherListResponse,
   CreateCardFromTemplateRequest,
   CreateCardFromTemplateResponse,
   CreateCardRequest,
@@ -267,6 +269,21 @@ export const useCards = () => {
     }
   };
 
+  // copy card to another list
+  const copyCardToAnotherList = async (
+    request: CopyCardToAnotherListRequest,
+  ): Promise<CopyCardToAnotherListResponse> => {
+    try {
+      const data = await cardApi.copyCardToAnotherList(request);
+      if (!data) throw new Error("Failed to copy card to another list");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to copy card to another list: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllCardsOfBoard,
     createCard,
@@ -284,5 +301,6 @@ export const useCards = () => {
     getAllTemplatesOfBoard,
     createCardFromTemplate,
     createNewCardTemplate,
+    copyCardToAnotherList,
   };
 };

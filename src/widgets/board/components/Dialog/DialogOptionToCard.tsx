@@ -1,8 +1,10 @@
 import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import { useMemo } from "react";
-import { FiMoreHorizontal, FiCopy, FiArchive, FiFileText } from "react-icons/fi";
+import { FiMoreHorizontal, FiFileText } from "react-icons/fi";
 import { toast } from "sonner";
+import { MoveCardToAnotherList } from "../Card/components/MoveCardToAnotherList";
+import { CopyCardToAnotherList } from "../Card/components/CopyCardToAnotherList";
 
 interface DialogOptionToCardProps {
     cardId: string;
@@ -41,10 +43,10 @@ export function DialogOptionToCard({ cardId }: DialogOptionToCardProps) {
             </PopoverTrigger>
             <PopoverContent align="end" className="w-64 p-2">
                 <div className="space-y-1">
-                    <button className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors text-left">
-                        <FiCopy className="w-4 h-4 text-gray-600" />
-                        <span className="text-sm font-semibold">Copy card</span>
-                    </button>
+                    
+                    <CopyCardToAnotherList cardId={cardId} />
+
+                    <MoveCardToAnotherList cardId={cardId} />
                     
                     <button className="w-full flex justify-between items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors text-left" onClick={toggleTemplateCard}>
                         <div className="flex items-center gap-2">
@@ -52,12 +54,6 @@ export function DialogOptionToCard({ cardId }: DialogOptionToCardProps) {
                             <span className="text-sm font-semibold">{currentIsTemplate ? "Remove from templates" : "Save as template"}</span>
                         </div>
                     </button>
-                    
-                    <button className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors text-left">
-                        <FiArchive className="w-4 h-4 text-gray-600" />
-                        <span className="text-sm font-semibold">Archive card</span>
-                    </button>
-                    
                     
                 </div>
             </PopoverContent>

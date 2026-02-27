@@ -193,6 +193,22 @@ export const useBoards = () => {
     }
   };
 
+  // get all boards that user is real member
+  const getAllBoardsOfUserMemberOfWorkspace = async (): Promise<Board[]> => {
+    try {
+      const data = await boardApi.getAllBoardsOfUserMemberOfWorkspace();
+      if (!data)
+        throw new Error("Failed to get all boards that user is real member");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to get all boards that user is real member: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
   return {
     getAllBoardsOfWorkspace,
     addBoardToWorkspace,
@@ -205,5 +221,6 @@ export const useBoards = () => {
     getAllMemberOfBoard,
     getInviteLinkJoinToBoard,
     joinBoardByInviteLink,
+    getAllBoardsOfUserMemberOfWorkspace,
   };
 };
