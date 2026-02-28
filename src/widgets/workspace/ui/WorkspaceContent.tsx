@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom";
 import { useWorkspaceContext } from "@/features/providers/WorkspaceProvider";
 import { useBoardContext } from "@/features/providers/BoardProvider";
 import { useEffect, useMemo, useState } from "react";
@@ -14,11 +14,9 @@ export function WorkspaceContent() {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('most-recent');
     const navigate = useNavigate();
-    
-    // Find current workspace
-    const currentWorkspace = projects.find(project => project.id === workspaceId);
-    
-    // Check if workspace is archived
+
+    const currentWorkspace = projects.find((p) => p.id === workspaceId);
+
     useEffect(() => {
         if (currentWorkspace && currentWorkspace.archive) {
             toast.error("Workspace Archived", {
@@ -29,7 +27,6 @@ export function WorkspaceContent() {
         }
     }, [currentWorkspace, navigate]);
 
-    // If workspace does not exist or is archived, do not render anything
     if (!currentWorkspace || currentWorkspace.archive) {
         return (
             <div className="flex-1 flex items-center justify-center">
@@ -37,16 +34,18 @@ export function WorkspaceContent() {
             </div>
         );
     }
-    // Filter boards của workspace này
-    const workspaceBoards = useMemo(() => {
-        return boards.filter(board => board.workspaceId === workspaceId);
-    }, [boards, workspaceId]);
-    
+
+    const workspaceBoards = useMemo(
+        () =>
+            boards.filter(
+                (b) => (b.workspaceId ?? (b as any).workspace_id) === workspaceId,
+            ),
+        [boards, workspaceId],
+    );
     const boardCount = workspaceBoards.length;
 
     return (
         <div className="flex-1 overflow-y-auto">
-            {/* Header */}
             <div className="px-8 py-4">
                 <div className="flex items-center justify-between">
                     <div>
@@ -56,14 +55,12 @@ export function WorkspaceContent() {
                     </div>
                 </div>
             </div>
-
-            {/* Main Content */}
-            <BoardFilter 
+            <BoardFilter
                 onSearchChange={setSearchTerm}
                 onSortChange={setSortBy}
                 onViewChange={setViewType}
             />
             <WorkspaceBoard viewType={viewType} searchTerm={searchTerm} sortBy={sortBy} />
         </div>
-    )
+    );
 }

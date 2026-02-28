@@ -82,49 +82,44 @@ export function BoardProvider({ children }: { children: ReactNode }) {
             console.error(`Failed to refresh board: ${err}`);
         }
     }
-    
-    // fetch all boards when projects change
+
+    // fetch all boards when projects change — chỉ board user là thành viên (my-boards)
     useEffect(() => {
         const fetchAllBoards = async () => {
-            if (projects.length === 0) return;
-            
+            if (projects.length === 0) {
+                setBoards([]);
+                setIsLoading(false);
+                return;
+            }
             setIsLoading(true);
-            let allBoards: Board[] = [];
-            
             try {
-                await Promise.all(
-                    projects.map(async (project) => {
-                        try {
-                            const data = await getAllBoardsOfWorkspace(project.id);
-                            const boardsWithWorkspaceId = (data as unknown as Board[]).map(board => ({
-                                ...board,
-                                workspaceId: project.id
-                            }));
-                            allBoards = [...allBoards, ...boardsWithWorkspaceId];
-                        } catch (err) {
-                            console.error(`Failed to fetch boards for workspace ${project.id}:`, err);
-                        }
-                    })
-                );
-
+                const data = await getAllBoardsOfUserMemberOfWorkspace();
+                const raw = (data ?? []) as any[];
+                const projectIds = new Set(projects.map((p) => p.id));
+                const boardsWithWorkspaceId: Board[] = raw
+                    .filter((b) => projectIds.has(b.workspace_id ?? b.workspaceId))
+                    .map((b) => ({
+                        ...b,
+                        workspaceId: b.workspace_id ?? b.workspaceId ?? "",
+                    }));
                 const boardsWithMetadata = await Promise.all(
-                    allBoards.map(async (board) => {
-                        const metadata = await fetchBoardMetadata(board.id);
-                        return {
-                            ...board,
-                            ...metadata
+                    boardsWithWorkspaceId.map(async (board) => {
+                        try {
+                            const metadata = await fetchBoardMetadata(board.id);
+                            return { ...board, ...metadata } as Board;
+                        } catch {
+                            return board as Board;
                         }
-                    })
-                )
-                
+                    }),
+                );
                 setBoards(boardsWithMetadata);
             } catch (err) {
-                console.error("Error fetching all boards:", err);
+                console.error("Error fetching boards (user member only):", err);
+                setBoards([]);
             } finally {
                 setIsLoading(false);
             }
         };
-
         fetchAllBoards();
     }, [projects]);
     
