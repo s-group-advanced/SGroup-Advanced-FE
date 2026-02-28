@@ -1,13 +1,14 @@
 import { type GetAllListofBoardResponse, type GetAllListofBoardRequest, type List, useLists, type CreateListRequest, type CreateListResponse } from "@/features/lists/index";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { createContext } from "react";
-import type { CopyListToBoardRequest, DeleteListFromBoardRequest, MoveListToAnotherBoardRequest, MoveListToBoardRequest, UpdateNameListRequest } from "@/features/lists/api/type";
+import type { CopyListToBoardRequest, DeleteListFromBoardPermanentlyRequest, DeleteListFromBoardRequest, GetAllArchivedListsOfBoardRequest, GetAllArchivedListsOfBoardResponse, MoveListToAnotherBoardRequest, MoveListToBoardRequest, UpdateNameListRequest } from "@/features/lists/api/type";
 import { useBoardContext } from "./BoardProvider";
 
 interface ListContextType {
     // State
     list: List[];
+    archivedList: List[];
     isLoading: boolean;
     error: string | null;
 
@@ -20,6 +21,8 @@ interface ListContextType {
     fetchReorderList: (request: MoveListToBoardRequest) => Promise<void>;
     handleMoveListToAnotherBoard: (request: MoveListToAnotherBoardRequest) => Promise<void>;
     handleCopyListToBoard: (request: CopyListToBoardRequest) => Promise<void>;
+    fetchAllArchivedListsOfBoard: (request: GetAllArchivedListsOfBoardRequest) => Promise<GetAllArchivedListsOfBoardResponse>;
+    handleDeleteListFromBoardPermanently: (request: DeleteListFromBoardPermanentlyRequest) => Promise<void>;
 }
 
 const ListContext = createContext<ListContextType | undefined>(undefined);
@@ -27,10 +30,21 @@ const ListContext = createContext<ListContextType | undefined>(undefined);
 export function ListProvider({ children }: { children: React.ReactNode }) {
     const { boardId } = useParams<{ boardId: string }>();
     const [list, setList] = useState<List[]>([]);
+    const [archivedList, setArchivedList] = useState<List[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { refreshBoard } = useBoardContext();
-    const { getAllListsOfBoard, createList, updateNameList, deleteListFromBoard, moveListToBoard, moveListToAnotherBoard, copyListToBoard } = useLists();
+    const { 
+        getAllListsOfBoard, 
+        createList, 
+        updateNameList, 
+        deleteListFromBoard,
+        moveListToBoard, 
+        moveListToAnotherBoard, 
+        copyListToBoard, 
+        getAllArchivedListsOfBoard,
+        deleteListFromBoardPermanently,
+    } = useLists();
 
     // get data from api
     useEffect(() => {
@@ -98,7 +112,14 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
     const fetchDeleteListFromBoard = async (request: DeleteListFromBoardRequest) => {
         try {
             await deleteListFromBoard(request);
-            setList(prevList => prevList.filter(l => l.id !== request.listId));
+            if (request.archived) {
+                setList(prevList => prevList.filter(l => l.id !== request.listId));
+            } else {
+                if (boardId) {
+                    await fetchLists(boardId);
+                }
+            }
+            setArchivedList(prevList => prevList.filter(l => l.id !== request.listId));
 
             if (boardId) {
                 await refreshBoard(boardId);
@@ -174,8 +195,41 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
+    // get all archived lists of board
+    const fetchAllArchivedListsOfBoard = useCallback(
+        async (request: GetAllArchivedListsOfBoardRequest): Promise<GetAllArchivedListsOfBoardResponse> => {
+            try {
+                const data = await getAllArchivedListsOfBoard(request);
+                setArchivedList(data as unknown as List[]);
+                return data;
+            } catch (err) {
+                setError("Failed to get all archived lists of board");
+                console.error(`Failed to get all archived lists of board: ${err}`);
+                throw err;
+            }
+        },
+        [getAllArchivedListsOfBoard]
+    );
+
+    // delete list from board permanently
+    const handleDeleteListFromBoardPermanently = async (request: DeleteListFromBoardPermanentlyRequest) => {
+        try {
+            await deleteListFromBoardPermanently(request);
+            setArchivedList(prevList => prevList.filter(l => l.id !== request.listId));
+
+            if (boardId) {
+                await refreshBoard(boardId);
+            }
+        } catch (err) {
+            setError("Failed to delete list from board permanently");
+            console.error(`Failed to delete list from board permanently: ${err}`);
+            throw err;
+        }
+    }
+
     const value : ListContextType = {
         list, 
+        archivedList,
         isLoading,
         error,
         getAllListsOfBoard,
@@ -186,6 +240,8 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
         fetchReorderList,
         handleMoveListToAnotherBoard,
         handleCopyListToBoard,
+        fetchAllArchivedListsOfBoard,
+        handleDeleteListFromBoardPermanently,
     }
 
     return (

@@ -26,6 +26,8 @@ export function MoveCardToAnotherList({ cardId }: MoveCardToAnotherListProps) {
     // Data theo board đang chọn trong select
     const [listsOfSelectedBoard, setListsOfSelectedBoard] = useState<List[]>([]);
     const [cardsOfSelectedBoard, setCardsOfSelectedBoard] = useState<Card[]>([]);
+
+    const [popoverOpen, setPopoverOpen] = useState(false);
     
     const card = useMemo(() => cards.find(c => c.id === cardId), [cards, cardId]);
         
@@ -164,7 +166,7 @@ export function MoveCardToAnotherList({ cardId }: MoveCardToAnotherListProps) {
             })();
           }, [selectedBoardId, card?.board_id]);
     return (
-        <Popover>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
                 <button className="flex w-full items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors text-left">
                     <FiArrowRight className="w-4 h-4 text-gray-600" />
@@ -175,7 +177,7 @@ export function MoveCardToAnotherList({ cardId }: MoveCardToAnotherListProps) {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Move card</h3>
-                <button className="p-1 hover:bg-gray-100 transition-colors rounded-md">
+                <button className="p-1 hover:bg-gray-100 transition-colors rounded-md" onClick={() => setPopoverOpen(false)}>
                     <FiX className="w-4 h-4" />
                 </button>
                 </div>

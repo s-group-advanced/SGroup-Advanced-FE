@@ -1,4 +1,4 @@
-import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest, GetAllTemplatesOfBoardRequest, GetAllTemplatesOfBoardResponse, CreateCardFromTemplateResponse, CreateCardFromTemplateRequest, CreateNewCardTemplateResponse, CreateNewCardTemplateRequest, CopyCardToAnotherListResponse, CopyCardToAnotherListRequest } from "@/features/cards/api/type";
+import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest, GetAllTemplatesOfBoardRequest, GetAllTemplatesOfBoardResponse, CreateCardFromTemplateResponse, CreateCardFromTemplateRequest, CreateNewCardTemplateResponse, CreateNewCardTemplateRequest, CopyCardToAnotherListResponse, CopyCardToAnotherListRequest, GetAllArchivedCardsOfBoardRequest, GetAllArchivedCardsOfBoardResponse, DeleteCardPermanentlyRequest, DeleteCardPermanentlyResponse } from "@/features/cards/api/type";
 import { type Card, type GetAllCardsOfBoardResponse, type GetAllCardsOfBoardRequest, useCards, type CreateCardRequest, type CreateCardResponse, type DeleteCardResponse, type DeleteCardRequest } from "@/features/cards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -8,12 +8,15 @@ interface CardDetailContextType {
     cards: Card[];
     isLoading: boolean;
     error: string | null;
+    archivedCards: Card[];
 
     // Functions
     getAllCardsOfBoard: (request: GetAllCardsOfBoardRequest) => Promise<GetAllCardsOfBoardResponse>;
+    fetchAllArchivedCardsOfBoard: (request: GetAllArchivedCardsOfBoardRequest) => Promise<GetAllArchivedCardsOfBoardResponse>;
     fetchCreateCard: (request: CreateCardRequest) => Promise<CreateCardResponse>;
     addCardToState: (card: Card) => void;
     fetchDeleteCard: (request: DeleteCardRequest) => Promise<DeleteCardResponse>;
+    handleDeleteCardPermanently: (request: DeleteCardPermanentlyRequest) => Promise<DeleteCardPermanentlyResponse>;
     removeCardFromState: (cardId: string) => void;
     fetchUpdateCard: (request: UpdateCardRequest) => Promise<UpdateCardResponse>;
     updateCardInState: (cardId: string, updates: Partial<Card>) => void;
@@ -40,6 +43,7 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
     const [cards, setCards] = useState<Card[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [archivedCards, setArchivedCards] = useState<Card[]>([]);
 
     const { 
         getAllCardsOfBoard, 
@@ -58,7 +62,9 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         getAllTemplatesOfBoard,
         createCardFromTemplate,
         createNewCardTemplate,
-        copyCardToAnotherList
+        copyCardToAnotherList,
+        getAllArchivedCardsOfBoard,
+        deleteCardPermanently
     } = useCards();
 
     // get data from api
@@ -94,6 +100,26 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         }
     }
 
+    // get all archived cards of board
+    const fetchAllArchivedCardsOfBoard = async (request: GetAllArchivedCardsOfBoardRequest) : Promise<GetAllArchivedCardsOfBoardResponse> => {
+        try {
+            const data = await getAllArchivedCardsOfBoard(request);
+            if (!data) throw new Error("Failed to get all archived cards of board");
+            let archivedCardsData: Card[] = [];
+            if (Array.isArray(data)) {
+                archivedCardsData = data;
+            } else if (data && typeof data === 'object' && 'cards' in data) {
+                archivedCardsData = data.cards || [];
+            }
+            setArchivedCards(archivedCardsData);
+            return data;
+        } catch (err) {
+            setError("Failed to get all archived cards of board");
+            console.error(`Failed to get all archived cards of board: ${err}`);
+            throw err;
+        }
+    }
+
     // create card
     const fetchCreateCard = async (request: CreateCardRequest) : Promise<CreateCardResponse> => {
         try {
@@ -116,10 +142,29 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         try {
             const data = await deleteCard(request);
             if (!data) throw new Error("Failed to delete card");
+            if (boardId) {
+                await fetchCards(boardId);
+                await fetchAllArchivedCardsOfBoard({ boardId: boardId });
+            }
             return data;
         } catch (err) {
             setError("Failed to delete card");
             console.error(`Failed to delete card: ${err}`);
+            throw err;
+        }
+    }
+
+    // delete card permanently
+    const handleDeleteCardPermanently = async (request: DeleteCardPermanentlyRequest) : Promise<DeleteCardPermanentlyResponse> => {
+        setArchivedCards(prev => prev.filter(c => c.id !== request.cardId));
+
+        try {
+            const data = await deleteCardPermanently(request);
+            if (!data) throw new Error("Failed to delete card permanently");
+            return data;
+        } catch (err) {
+            setError("Failed to delete card permanently");
+            console.error(`Failed to delete card permanently: ${err}`);
             throw err;
         }
     }
@@ -455,10 +500,13 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         cards,
         isLoading,
         error,
+        archivedCards,
         getAllCardsOfBoard,
+        fetchAllArchivedCardsOfBoard,
         fetchCreateCard,
         addCardToState,
         fetchDeleteCard,
+        handleDeleteCardPermanently,
         removeCardFromState,
         fetchUpdateCard,
         updateCardInState,

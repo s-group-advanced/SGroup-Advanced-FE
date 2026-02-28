@@ -52,8 +52,10 @@ export const API_ENDPOINTS = {
   },
   CARD: {
     GET_ALL_CARDS_OF_BOARD: "/boards/{boardId}/cards?archived=false",
+    GET_ALL_ARCHIVED_CARDS_OF_BOARD: "/boards/{boardId}/cards?archived=true",
     CREATE_CARD: "/cards",
     DELETE_CARD: "/cards/{cardId}/archive",
+    DELETE_CARD_PERMANENTLY: "/cards/{cardId}",
     UPDATE_CARD: "/cards/{cardId}",
     ASSIGN_USER_TO_CARD: "/cards/{cardId}/members",
     UNASSIGN_USER_FROM_CARD: "/cards/{cardId}/members/{userId}",
@@ -82,6 +84,8 @@ export const API_ENDPOINTS = {
     MOVE_LIST_TO_BOARD: "/boards/lists/{listId}/reorder",
     MOVE_LIST_TO_ANOTHER_BOARD: "/boards/lists/{listId}/move",
     COPY_LIST_TO_BOARD: "/boards/lists/{listId}/copy",
+    GET_ALL_ARCHIVED_LISTS_OF_BOARD: "/boards/{boardId}/lists?archived=true",
+    DELETE_LIST_FROM_BOARD_PERMANENTLY: "/boards/{boardId}/lists/{listId}",
   },
   CHECKLIST: {
     GET_ALL_CHECKLISTS_OF_CARD: "/cards/{cardId}/checklists",

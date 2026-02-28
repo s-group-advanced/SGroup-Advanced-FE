@@ -12,9 +12,13 @@ import type {
   CreateCommentOnCardResponse,
   CreateNewCardTemplateRequest,
   CreateNewCardTemplateResponse,
+  DeleteCardPermanentlyRequest,
+  DeleteCardPermanentlyResponse,
   DeleteCardRequest,
   DeleteCardResponse,
   DeleteCommentOnCardRequest,
+  GetAllArchivedCardsOfBoardRequest,
+  GetAllArchivedCardsOfBoardResponse,
   GetAllCardsOfBoardRequest,
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
@@ -43,6 +47,18 @@ export const cardApi = {
     );
   },
 
+  // get all archived cards of board
+  getAllArchivedCardsOfBoard: (
+    request: GetAllArchivedCardsOfBoardRequest,
+  ): Promise<GetAllArchivedCardsOfBoardResponse> => {
+    return fetchFactory.get<GetAllArchivedCardsOfBoardResponse>(
+      CardEndpoint.GET_ALL_ARCHIVED_CARDS_OF_BOARD.replace(
+        "{boardId}",
+        request.boardId,
+      ),
+    );
+  },
+
   // create card
   createCard: (request: CreateCardRequest): Promise<CreateCardResponse> => {
     return fetchFactory.post<CreateCardResponse>(
@@ -53,8 +69,20 @@ export const cardApi = {
 
   // delete card (archive)
   deleteCard: (request: DeleteCardRequest): Promise<DeleteCardResponse> => {
+    const { cardId, archived } = request;
     return fetchFactory.delete<DeleteCardResponse>(
-      CardEndpoint.DELETE_CARD.replace("{cardId}", request.cardId),
+      CardEndpoint.DELETE_CARD.replace("{cardId}", cardId),
+      { data: { archived: archived } },
+    );
+  },
+
+  // delete card permanently
+  deleteCardPermanently: (
+    request: DeleteCardPermanentlyRequest,
+  ): Promise<DeleteCardPermanentlyResponse> => {
+    const { cardId } = request;
+    return fetchFactory.delete<DeleteCardPermanentlyResponse>(
+      CardEndpoint.DELETE_CARD_PERMANENTLY.replace("{cardId}", cardId),
     );
   },
 

@@ -3,7 +3,10 @@ import type {
   CopyListToBoardRequest,
   CreateListRequest,
   CreateListResponse,
+  DeleteListFromBoardPermanentlyRequest,
   DeleteListFromBoardRequest,
+  GetAllArchivedListsOfBoardRequest,
+  GetAllArchivedListsOfBoardResponse,
   GetAllListofBoardRequest,
   GetAllListofBoardResponse,
   MoveListToAnotherBoardRequest,
@@ -49,7 +52,7 @@ export const listApi = {
         "{boardId}",
         request.boardId,
       ).replace("{listId}", request.listId),
-      { archived: true },
+      { archived: request.archived },
     );
   },
 
@@ -77,6 +80,28 @@ export const listApi = {
     return fetchFactory.post<void>(
       ListEndpoint.COPY_LIST_TO_BOARD.replace("{listId}", listId),
       body,
+    );
+  },
+
+  // get all archived lists of board
+  getAllArchivedListsOfBoard: (request: GetAllArchivedListsOfBoardRequest) => {
+    return fetchFactory.get<GetAllArchivedListsOfBoardResponse>(
+      ListEndpoint.GET_ALL_ARCHIVED_LISTS_OF_BOARD.replace(
+        "{boardId}",
+        request.boardId,
+      ),
+    );
+  },
+
+  // delete list from board permanently
+  deleteListFromBoardPermanently: (
+    request: DeleteListFromBoardPermanentlyRequest,
+  ) => {
+    return fetchFactory.delete<void>(
+      ListEndpoint.DELETE_LIST_FROM_BOARD_PERMANENTLY.replace(
+        "{boardId}",
+        request.boardId,
+      ).replace("{listId}", request.listId),
     );
   },
 };

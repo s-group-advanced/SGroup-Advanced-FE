@@ -2,9 +2,11 @@ import { useBoardDetail } from "@/features/providers/BoardDetailProvider";
 import { Button } from "@/shared/ui/button";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import React, { useEffect, useRef, useState } from "react";
-import { FiEdit, FiMoreHorizontal, FiUserPlus } from "react-icons/fi";
+import { FiArchive, FiEdit, FiMoreHorizontal, FiUserPlus } from "react-icons/fi";
 import { DialogInviteToBoard } from "../components/Dialog/DialogInviteToBoard";
 import { BoardMemberAvatar } from "../components/BoardMemberAvatar";
+import { ArchivedItems } from "./components/ArchivedItems";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 
 export function BoardHeader() {
     const { board, updateBoardName, refreshMembersOfBoard } = useBoardDetail();
@@ -12,6 +14,8 @@ export function BoardHeader() {
     const [boardName, setBoardName] = useState(board?.name || "");
     const inputRef = useRef<HTMLInputElement>(null);
     const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+    const [isArchivedItemsOpen, setIsArchivedItemsOpen] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     // update board name when board name change
     useEffect(() => {
@@ -117,25 +121,53 @@ export function BoardHeader() {
 
 
                 {/* More menu */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger>
-                        <FiMoreHorizontal className="w-4 h-4 mr-2 hover:text-gray-600 transition-colors cursor-pointer" />
+                <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            className="p-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+                        >
+                            <FiMoreHorizontal className="w-4 h-4 mr-2 hover:text-gray-600 transition-colors cursor-pointer" />
+                        </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" sideOffset={10}>
+                    <DropdownMenuContent align="end" sideOffset={10} onCloseAutoFocus={(e) => e.preventDefault()}>
                         <DropdownMenuItem 
                             onClick={() => setIsInviteDialogOpen(true)}
-                            className="flex items-center gap-2 hover:bg-gray-100 rounded transition-colors cursor-pointe px-2 py-1.5">
+                            className="flex items-center gap-2 hover:bg-gray-100 rounded transition-colors cursor-pointer px-2 py-1.5"
+                        >
                             <FiUserPlus className="w-4 h-4" />
                             Invite members
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                             onClick={handleEditName}
-                            className="flex items-center gap-2 hover:bg-gray-100 rounded transition-colors cursor-pointe px-2 py-1.5">
+                            className="flex items-center gap-2 hover:bg-gray-100 rounded transition-colors cursor-pointer px-2 py-1.5"
+                        >
                             <FiEdit className="w-4 h-4" />
                             Rename board
                         </DropdownMenuItem>
-                    </DropdownMenuContent>
+                        <DropdownMenuItem
+                            className="flex items-center gap-2 hover:bg-gray-100 rounded transition-colors cursor-pointer px-2 py-1.5"
+                            onClick={() => {
+                                setIsDropdownOpen(false);
+                                setIsArchivedItemsOpen(true);
+                            }}
+                        >
+                            <FiArchive className="w-4 h-4 text-gray-600" />
+                            Archived items
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>  
                 </DropdownMenu>
+                <Popover open={isArchivedItemsOpen}>
+                    <PopoverTrigger asChild>
+                        <div className="absolute top-2 right-2 w-1 h-1 pointer-events-none" />
+                    </PopoverTrigger>
+                    <PopoverContent side="right" align="start" className="w-72 p-4 space-y-4">
+                    <ArchivedItems onClose={() => {
+                        setIsArchivedItemsOpen(false);
+                        setTimeout(() => setIsDropdownOpen(true), 0);
+                    }} />
+                    </PopoverContent>
+                </Popover>
             </div>
 
             <DialogInviteToBoard

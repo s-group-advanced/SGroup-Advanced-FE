@@ -66,3 +66,22 @@ export interface CopyListToBoardRequest {
   targetBoardId: string;
   newName?: string;
 }
+
+export interface GetAllArchivedListsOfBoardRequest {
+  boardId: string;
+}
+
+export interface GetAllArchivedListsOfBoardResponse {
+  id: string;
+  board_id: string;
+  title: string;
+  name: string;
+  archived: boolean;
+  position: number;
+  cover_img: string;
+}
+
+export interface DeleteListFromBoardPermanentlyRequest {
+  boardId: string;
+  listId: string;
+}

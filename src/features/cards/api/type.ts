@@ -58,6 +58,14 @@ export interface GetAllCardsOfBoardResponse {
   cards: Card[];
 }
 
+export interface GetAllArchivedCardsOfBoardRequest {
+  boardId: string;
+}
+
+export interface GetAllArchivedCardsOfBoardResponse {
+  cards: Card[];
+}
+
 export interface CreateCardRequest {
   title: string;
   description?: string;
@@ -70,6 +78,7 @@ export interface CreateCardResponse {
 
 export interface DeleteCardRequest {
   cardId: string;
+  archived: boolean;
 }
 
 export interface DeleteCardResponse {
@@ -224,3 +233,11 @@ export interface CopyCardToAnotherListRequest {
 }
 
 export type CopyCardToAnotherListResponse = Card;
+
+export interface DeleteCardPermanentlyRequest {
+  cardId: string;
+}
+
+export interface DeleteCardPermanentlyResponse {
+  card: Card;
+}

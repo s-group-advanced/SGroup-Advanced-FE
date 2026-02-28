@@ -392,7 +392,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
 
     const handleDeleteCard = async () => {
         setIsDeleting(true);
-        await fetchDeleteCard({ cardId: card.id });
+        await fetchDeleteCard({ cardId: card.id, archived: true });
         removeCardFromState(card.id);
         setCardLabels([]);
         onOpenChange?.(false);
@@ -873,17 +873,21 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
 
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="destructive" disabled={isDeleting}>
+                        <Button 
+                            variant="destructive" 
+                            disabled={isDeleting || card.is_template}
+                            title={card.is_template ? "Template cards cannot be deleted" : undefined}
+                        >
                             <FiTrash2 className="w-4 h-4" />
-                            {isDeleting ? "Deleting..." : "Delete Card"}
+                            {isDeleting ? "Archiving..." : "Archive Card"}
                         </Button>
                         </AlertDialogTrigger>
 
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>Delete this card?</AlertDialogTitle>
+                                <AlertDialogTitle>Archive this card?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. The card will be removed from this board.
+                                    This action cannot be undone. The card will be archived.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
 
@@ -893,7 +897,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                     variant="destructive"
                                     onClick={handleDeleteCard}
                                 >
-                                    Delete
+                                    Archive
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>

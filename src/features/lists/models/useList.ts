@@ -3,7 +3,10 @@ import type {
   CopyListToBoardRequest,
   CreateListRequest,
   CreateListResponse,
+  DeleteListFromBoardPermanentlyRequest,
   DeleteListFromBoardRequest,
+  GetAllArchivedListsOfBoardRequest,
+  GetAllArchivedListsOfBoardResponse,
   GetAllListofBoardRequest,
   GetAllListofBoardResponse,
   MoveListToAnotherBoardRequest,
@@ -102,6 +105,38 @@ export const useLists = () => {
     }
   };
 
+  // get all archived lists of board
+  const getAllArchivedListsOfBoard = async (
+    request: GetAllArchivedListsOfBoardRequest,
+  ): Promise<GetAllArchivedListsOfBoardResponse> => {
+    try {
+      const data = await listApi.getAllArchivedListsOfBoard(request);
+      if (!data) throw new Error("Failed to get all archived lists of board");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to get all archived lists of board: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // delete list from board permanently
+  const deleteListFromBoardPermanently = async (
+    request: DeleteListFromBoardPermanentlyRequest,
+  ): Promise<void> => {
+    try {
+      await listApi.deleteListFromBoardPermanently(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to delete list from board permanently: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
   return {
     getAllListsOfBoard,
     createList,
@@ -110,5 +145,7 @@ export const useLists = () => {
     moveListToBoard,
     moveListToAnotherBoard,
     copyListToBoard,
+    getAllArchivedListsOfBoard,
+    deleteListFromBoardPermanently,
   };
 };

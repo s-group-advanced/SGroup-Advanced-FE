@@ -12,9 +12,13 @@ import type {
   CreateCommentOnCardResponse,
   CreateNewCardTemplateRequest,
   CreateNewCardTemplateResponse,
+  DeleteCardPermanentlyRequest,
+  DeleteCardPermanentlyResponse,
   DeleteCardRequest,
   DeleteCardResponse,
   DeleteCommentOnCardRequest,
+  GetAllArchivedCardsOfBoardRequest,
+  GetAllArchivedCardsOfBoardResponse,
   GetAllCardsOfBoardRequest,
   GetAllCardsOfBoardResponse,
   GetAllCommentsOfCardRequest,
@@ -50,6 +54,23 @@ export const useCards = () => {
     }
   };
 
+  // get all archived cards of board
+  const getAllArchivedCardsOfBoard = async (
+    request: GetAllArchivedCardsOfBoardRequest,
+  ): Promise<GetAllArchivedCardsOfBoardResponse> => {
+    try {
+      const data = await cardApi.getAllArchivedCardsOfBoard(request);
+      if (!data) throw new Error("Failed to get all archived cards of board");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to get all archived cards of board: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
   // create card
   const createCard = async (
     request: CreateCardRequest,
@@ -76,6 +97,21 @@ export const useCards = () => {
     } catch (err) {
       const apiError = err as ApiError;
       console.error(`Failed to delete card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // delete card permanently
+
+  const deleteCardPermanently = async (
+    request: DeleteCardPermanentlyRequest,
+  ): Promise<DeleteCardPermanentlyResponse> => {
+    try {
+      const data = await cardApi.deleteCardPermanently(request);
+      return data || ({} as DeleteCardPermanentlyResponse);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to delete card permanently: ${apiError.message}`);
       throw apiError;
     }
   };
@@ -286,8 +322,10 @@ export const useCards = () => {
 
   return {
     getAllCardsOfBoard,
+    getAllArchivedCardsOfBoard,
     createCard,
     deleteCard,
+    deleteCardPermanently,
     updateCard,
     assignUserToCard,
     unassignUserFromCard,

@@ -1,6 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
-import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from "@/shared/ui/select";
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectValue,
+  SelectTrigger,
+} from "@/shared/ui/select";
 import { Button } from "@/shared/ui/button";
 import { FiCopy, FiX } from "react-icons/fi";
 import { useBoardContext } from "@/features/providers/BoardProvider";
@@ -16,13 +22,17 @@ interface CopyCardToAnotherListProps {
 }
 
 export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
-    const { fetchAllBoardsOfUserMemberOfWorkspace } = useBoardContext();
-    const [boards, setBoards] = useState<Board[]>([]);
+  const { fetchAllBoardsOfUserMemberOfWorkspace } = useBoardContext();
+  const [boards, setBoards] = useState<Board[]>([]);
   const { cards, handleCopyCardToAnotherList } = useCardDetailContext();
   const { getAllListsOfBoard } = useLists();
   const { getAllCardsOfBoard } = useCards();
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const card = useMemo(() => cards.find((c) => c.id === cardId), [cards, cardId]);
+  const card = useMemo(
+    () => cards.find((c) => c.id === cardId),
+    [cards, cardId],
+  );
 
   // State cho tên thẻ copy + checkbox
   const [title, setTitle] = useState(card?.title ?? "");
@@ -47,7 +57,7 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
     if (!card || !card.board_id) return;
     if (!boards.length) return;
     if (selectedBoardId) return;
-  
+
     const defaultBoardId = card.board_id;
     setSelectedBoardId(defaultBoardId);
     handleSelectBoard(defaultBoardId);
@@ -64,20 +74,21 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
   useEffect(() => {
     if (!card) return;
     if (!cardsInSelectedList.length) return;
-  
+
     if (selectedBoardId !== card.board_id) return;
     if (selectedListId !== card.list_id) return;
-  
+
     const index = cardsInSelectedList.findIndex((c) => c.id === card.id);
     if (index === -1) return;
-  
+
     const position = index + 1;
     setSelectedPosition(position);
   }, [card, selectedBoardId, selectedListId, cardsInSelectedList]);
 
   // Option position = 1..N+1 (chèn đầu/giữa/cuối)
   const positionOptions = useMemo(
-    () => Array.from({ length: cardsInSelectedList.length + 1 }, (_, i) => i + 1),
+    () =>
+      Array.from({ length: cardsInSelectedList.length + 1 }, (_, i) => i + 1),
     [cardsInSelectedList.length],
   );
 
@@ -96,7 +107,11 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
       let boardCards: Card[] = [];
       if (Array.isArray(cardData)) {
         boardCards = cardData as Card[];
-      } else if (cardData && typeof cardData === "object" && "cards" in cardData) {
+      } else if (
+        cardData &&
+        typeof cardData === "object" &&
+        "cards" in cardData
+      ) {
         boardCards = (cardData as any).cards || [];
       }
       setCardsOfSelectedBoard(boardCards);
@@ -128,26 +143,26 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
     const newIndex = selectedPosition ? selectedPosition - 1 : undefined;
 
     try {
-        await handleCopyCardToAnotherList({
-            cardId,
-            targetListId: selectedListId,
-            title: trimmedTitle,
-            newIndex,
-            includeChecklists: keepChecklists,
-            includeLabels: keepLabels,
-            includeMembers: keepMembers,
-        });
+      await handleCopyCardToAnotherList({
+        cardId,
+        targetListId: selectedListId,
+        title: trimmedTitle,
+        newIndex,
+        includeChecklists: keepChecklists,
+        includeLabels: keepLabels,
+        includeMembers: keepMembers,
+      });
 
-        toast.success("Card copied to another list successfully", {
-            position: "top-center",
-        })
+      toast.success("Card copied to another list successfully", {
+        position: "top-center",
+      });
     } catch (err) {
-        console.error("Failed to copy card to another list", err);
+      console.error("Failed to copy card to another list", err);
     }
   };
 
   return (
-    <Popover>
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
         <button className="flex w-full items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors text-left">
           <FiCopy className="w-4 h-4 text-gray-600" />
@@ -159,7 +174,7 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Copy card</h3>
-          <button className="p-1 rounded hover:bg-gray-100">
+          <button className="p-1 rounded hover:bg-gray-100" onClick={() => setPopoverOpen(false)}>
             <FiX className="w-4 h-4" />
           </button>
         </div>
@@ -177,43 +192,47 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
 
         {/* Giữ... */}
         <div className="space-y-2">
-          <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Keep...</p>
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+            Keep...
+          </p>
           {Array.isArray(card?.checklists) && card.checklists.length > 0 && (
             <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
+              <input
                 type="checkbox"
                 checked={keepChecklists}
                 onChange={(e) => setKeepChecklists(e.target.checked)}
-                />
-                <span>
+              />
+              <span>
                 Checklists
-                {card?.checklists?.length != null && ` (${card.checklists.length})`}
-                </span>
+                {card?.checklists?.length != null &&
+                  ` (${card.checklists.length})`}
+              </span>
             </label>
           )}
           {Array.isArray(card?.labels) && card.labels.length > 0 && (
             <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
+              <input
                 type="checkbox"
                 checked={keepLabels}
                 onChange={(e) => setKeepLabels(e.target.checked)}
-                />
-                <span>
+              />
+              <span>
                 Labels
                 {card?.labels?.length != null && ` (${card.labels.length})`}
-                </span>
+              </span>
             </label>
           )}
           {Array.isArray(card?.cardMembers) && card.cardMembers.length > 0 && (
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={keepMembers}
-              onChange={(e) => setKeepMembers(e.target.checked)}
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={keepMembers}
+                onChange={(e) => setKeepMembers(e.target.checked)}
               />
               <span>
                 Members
-                {card?.cardMembers?.length != null && ` (${card.cardMembers.length})`}
+                {card?.cardMembers?.length != null &&
+                  ` (${card.cardMembers.length})`}
               </span>
             </label>
           )}
@@ -227,7 +246,9 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
 
           {/* Board */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-600">Board information</label>
+            <label className="text-xs font-medium text-gray-600">
+              Board information
+            </label>
             <Select
               value={selectedBoardId}
               onValueChange={(value) => {
@@ -237,7 +258,10 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
               <SelectTrigger className="w-full bg-white border-gray-200 text-sm">
                 <SelectValue placeholder="Select board" />
               </SelectTrigger>
-              <SelectContent position="popper" className="bg-white text-gray-700 border-gray-200">
+              <SelectContent
+                position="popper"
+                className="bg-white text-gray-700 border-gray-200"
+              >
                 {boards.map((b) => (
                   <SelectItem key={b.id} value={b.id} className="text-gray-700">
                     {b.name}
@@ -258,9 +282,16 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
                 <SelectTrigger className="w-full bg-white border-gray-200 text-sm">
                   <SelectValue placeholder="Select list" />
                 </SelectTrigger>
-                <SelectContent position="popper" className="bg-white text-gray-700 border-gray-200">
+                <SelectContent
+                  position="popper"
+                  className="bg-white text-gray-700 border-gray-200"
+                >
                   {listsOfSelectedBoard.map((l) => (
-                    <SelectItem key={l.id} value={l.id} className="text-gray-700">
+                    <SelectItem
+                      key={l.id}
+                      value={l.id}
+                      className="text-gray-700"
+                    >
                       {l.name}
                     </SelectItem>
                   ))}
@@ -269,7 +300,9 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-600">Position</label>
+              <label className="text-xs font-medium text-gray-600">
+                Position
+              </label>
               <Select
                 value={selectedPosition.toString()}
                 onValueChange={(value) => setSelectedPosition(Number(value))}
@@ -277,9 +310,16 @@ export function CopyCardToAnotherList({ cardId }: CopyCardToAnotherListProps) {
                 <SelectTrigger className="w-full bg-white border-gray-200 text-sm">
                   <SelectValue placeholder="Position" />
                 </SelectTrigger>
-                <SelectContent position="popper" className="bg-white text-gray-700 border-gray-200">
+                <SelectContent
+                  position="popper"
+                  className="bg-white text-gray-700 border-gray-200"
+                >
                   {positionOptions.map((pos) => (
-                    <SelectItem key={pos} value={pos.toString()} className="text-gray-700">
+                    <SelectItem
+                      key={pos}
+                      value={pos.toString()}
+                      className="text-gray-700"
+                    >
                       {pos}
                     </SelectItem>
                   ))}

@@ -1,4 +1,4 @@
-import { FiChevronLeft, FiCopy, FiEdit, FiMoreHorizontal, FiMove, FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { FiArchive, FiChevronLeft, FiCopy, FiEdit, FiMoreHorizontal, FiMove, FiPlus, FiX } from "react-icons/fi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { List } from "@/features/lists/api/type";
 import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
@@ -161,6 +161,7 @@ export function BoardList({ list, index, isDraggingList }: BoardListProps) {
         }
     };
 
+    // archive list
     const handleDelete = async () => {
             setIsDeleting(true);
             try {
@@ -279,11 +280,11 @@ export function BoardList({ list, index, isDraggingList }: BoardListProps) {
                                 {/* Trigger cho AlertDialog */}
                                 <AlertDialogTrigger asChild>
                                     <DropdownMenuItem
-                                    className="flex items-center gap-2 cursor-pointer text-red-600"
+                                    className="flex items-center gap-2 cursor-pointer"
                                     disabled={isDeleting}
                                     >
-                                    <FiTrash2 className="w-4 h-4" />
-                                    Delete
+                                    <FiArchive className="w-4 h-4" />
+                                    Archive list
                                     </DropdownMenuItem>
                                 </AlertDialogTrigger>
 
@@ -311,25 +312,28 @@ export function BoardList({ list, index, isDraggingList }: BoardListProps) {
                                         <FiCopy className="w-4 h-4" />
                                         Copy to another board
                                     </DropdownMenuItem>
+
+                                    
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
                             {/* Nội dung AlertDialog để outside DropdownMenuContent */}
                             <AlertDialogContent size="sm">
                                 <AlertDialogHeader>
-                                <AlertDialogTitle>Delete this list?</AlertDialogTitle>
+                                <AlertDialogTitle>Archive this list?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. All cards in this list will also be deleted.
+                                    All cards in this list will also be archived.
+                                    And you can restore it later.
                                 </AlertDialogDescription>
                                 </AlertDialogHeader>
 
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                    variant="destructive"
+                                    variant="default"
                                     onClick={handleDelete}
                                 >
-                                    Delete
+                                    Archive
                                 </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
