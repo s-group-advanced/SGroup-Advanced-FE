@@ -4,6 +4,8 @@ import type {
   AssignedUserToCardResponse,
   CopyCardToAnotherListRequest,
   CopyCardToAnotherListResponse,
+  CreateAttachmentRequest,
+  CreateAttachmentResponse,
   CreateCardFromTemplateRequest,
   CreateCardFromTemplateResponse,
   CreateCardRequest,
@@ -12,6 +14,7 @@ import type {
   CreateCommentOnCardResponse,
   CreateNewCardTemplateRequest,
   CreateNewCardTemplateResponse,
+  DeleteAttachmentRequest,
   DeleteCardPermanentlyRequest,
   DeleteCardPermanentlyResponse,
   DeleteCardRequest,
@@ -25,7 +28,11 @@ import type {
   GetAllCommentsOfCardResponse,
   GetAllTemplatesOfBoardRequest,
   GetAllTemplatesOfBoardResponse,
+  GetAttachmentOfCardRequest,
+  GetAttachmentOfCardResponse,
   MoveCardToListRequest,
+  SetCardCoverRequest,
+  SetCardCoverResponse,
   ToggleTemplateCardRequest,
   ToggleTemplateCardResponse,
   UnassignUserFromCardRequest,
@@ -320,6 +327,68 @@ export const useCards = () => {
     }
   };
 
+  // add attachment to card
+  const addAttachmentToCard = async (
+    request: CreateAttachmentRequest,
+  ): Promise<CreateAttachmentResponse> => {
+    try {
+      const data = await cardApi.addAttachmentToCard(request);
+      if (!data) throw new Error("Failed to add attachment to card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to add attachment to card: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
+  // get all attachments of card
+  const getAllAttachmentsOfCard = async (
+    request: GetAttachmentOfCardRequest,
+  ): Promise<GetAttachmentOfCardResponse> => {
+    try {
+      const data = await cardApi.getAllAttachmentsOfCard(request);
+      if (!data) throw new Error("Failed to get all attachments of card");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to get all attachments of card: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // delete attachment from card
+  const deleteAttachment = async (
+    request: DeleteAttachmentRequest,
+  ): Promise<void> => {
+    try {
+      await cardApi.deleteAttachment(request);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(
+        `Failed to delete attachment from card: ${apiError.message}`,
+      );
+      throw apiError;
+    }
+  };
+
+  // set card cover
+  const setCardCover = async (
+    request: SetCardCoverRequest,
+  ): Promise<SetCardCoverResponse> => {
+    try {
+      const data = await cardApi.setCardCover(request);
+      if (!data) throw new Error("Failed to set card cover");
+      return data;
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error(`Failed to set card cover: ${apiError.message}`);
+      throw apiError;
+    }
+  };
+
   return {
     getAllCardsOfBoard,
     getAllArchivedCardsOfBoard,
@@ -340,5 +409,9 @@ export const useCards = () => {
     createCardFromTemplate,
     createNewCardTemplate,
     copyCardToAnotherList,
+    addAttachmentToCard,
+    getAllAttachmentsOfCard,
+    deleteAttachment,
+    setCardCover,
   };
 };

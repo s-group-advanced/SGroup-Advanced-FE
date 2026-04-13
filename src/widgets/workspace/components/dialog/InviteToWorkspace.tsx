@@ -98,6 +98,17 @@ export function InviteToWorkspace({ isOpen, onOpenChange, triggerButton, workspa
         }
     }
 
+    const handleApiError = (err: unknown, defaultMessage: string) => {
+        const apiErr = err as { statusCode?: number; message?: string };
+        if (apiErr?.statusCode === 403) {
+          toast.error("Only workspace owner can create link invitation.", {
+            position: "top-center",
+          });
+        } else {
+          toast.error(defaultMessage, { position: "top-center" });
+        }
+      };
+
     // create link invitation to workspace
     const createLinkInvitationToWorkspace = async (): Promise<void> => {
         try {
@@ -116,10 +127,7 @@ export function InviteToWorkspace({ isOpen, onOpenChange, triggerButton, workspa
                 position: "top-center",
             });
         } catch (err) {
-            console.error(`Failed to create link invitation to workspace: ${err}`);
-            toast.error("Failed to create link invitation to workspace. Please try again.", {
-                position: "top-center",
-            });
+            handleApiError(err, "Failed to create link invitation to workspace. Please try again.");
             setWorkspaceLinkInvitation(workspaceId, {
                 isCreatingLinkInvitation: false,
             });

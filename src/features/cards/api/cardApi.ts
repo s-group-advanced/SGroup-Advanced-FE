@@ -4,6 +4,8 @@ import type {
   AssignedUserToCardResponse,
   CopyCardToAnotherListRequest,
   CopyCardToAnotherListResponse,
+  CreateAttachmentRequest,
+  CreateAttachmentResponse,
   CreateCardFromTemplateRequest,
   CreateCardFromTemplateResponse,
   CreateCardRequest,
@@ -12,6 +14,7 @@ import type {
   CreateCommentOnCardResponse,
   CreateNewCardTemplateRequest,
   CreateNewCardTemplateResponse,
+  DeleteAttachmentRequest,
   DeleteCardPermanentlyRequest,
   DeleteCardPermanentlyResponse,
   DeleteCardRequest,
@@ -25,7 +28,11 @@ import type {
   GetAllCommentsOfCardResponse,
   GetAllTemplatesOfBoardRequest,
   GetAllTemplatesOfBoardResponse,
+  GetAttachmentOfCardRequest,
+  GetAttachmentOfCardResponse,
   MoveCardToListRequest,
+  SetCardCoverRequest,
+  SetCardCoverResponse,
   ToggleTemplateCardRequest,
   ToggleTemplateCardResponse,
   UnassignUserFromCardRequest,
@@ -235,6 +242,48 @@ export const cardApi = {
     const { cardId, ...body } = request;
     return fetchFactory.post<CopyCardToAnotherListResponse>(
       CardEndpoint.COPY_CARD_TO_ANOTHER_LIST.replace("{cardId}", cardId),
+      body,
+    );
+  },
+
+  // add attachment to card
+  addAttachmentToCard: (
+    request: CreateAttachmentRequest,
+  ): Promise<CreateAttachmentResponse> => {
+    const { cardId, ...body } = request;
+    return fetchFactory.post<CreateAttachmentResponse>(
+      CardEndpoint.CREATE_ATTACHMENT_ON_CARD.replace("{cardId}", cardId),
+      body,
+    );
+  },
+
+  // get all attachments of card
+  getAllAttachmentsOfCard: (
+    request: GetAttachmentOfCardRequest,
+  ): Promise<GetAttachmentOfCardResponse> => {
+    return fetchFactory.get<GetAttachmentOfCardResponse>(
+      CardEndpoint.GET_ATTACHMENT_OF_CARD.replace("{cardId}", request.cardId),
+    );
+  },
+
+  // delete attachment from card
+  deleteAttachment: (request: DeleteAttachmentRequest): Promise<void> => {
+    const { cardId, attachmentId } = request;
+    return fetchFactory.delete<void>(
+      CardEndpoint.DELETE_ATTACHMENT_FROM_CARD.replace(
+        "{cardId}",
+        cardId,
+      ).replace("{attachmentId}", attachmentId),
+    );
+  },
+
+  // set card cover
+  setCardCover: (
+    request: SetCardCoverRequest,
+  ): Promise<SetCardCoverResponse> => {
+    const { cardId, ...body } = request;
+    return fetchFactory.patch<SetCardCoverResponse>(
+      CardEndpoint.SET_CARD_COVER.replace("{cardId}", cardId),
       body,
     );
   },

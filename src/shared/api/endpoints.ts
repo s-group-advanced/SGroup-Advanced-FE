@@ -75,6 +75,10 @@ export const API_ENDPOINTS = {
     CREATE_NEW_CARD_TEMPLATE: "/cards/templates",
     MOVE_CARD_TO_ANOTHER_LIST: "/cards/{cardId}/move",
     COPY_CARD_TO_ANOTHER_LIST: "/cards/{cardId}/copy",
+    CREATE_ATTACHMENT_ON_CARD: "/cards/{cardId}/attachments",
+    GET_ATTACHMENT_OF_CARD: "/cards/{cardId}/attachments",
+    DELETE_ATTACHMENT_FROM_CARD: "/cards/{cardId}/attachments/{attachmentId}",
+    SET_CARD_COVER: "/cards/{cardId}/cover",
   },
   LIST: {
     GET_ALL_LISTS_OF_BOARD: "/boards/{boardId}/lists?archived=false",

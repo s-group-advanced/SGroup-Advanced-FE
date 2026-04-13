@@ -37,4 +37,11 @@ export type {
   CreateNewCardTemplateResponse,
   CopyCardToAnotherListRequest,
   CopyCardToAnotherListResponse,
+  CreateAttachmentRequest,
+  CreateAttachmentResponse,
+  GetAttachmentOfCardRequest,
+  GetAttachmentOfCardResponse,
+  DeleteAttachmentRequest,
+  SetCardCoverRequest,
+  SetCardCoverResponse,
 } from "./api/type";

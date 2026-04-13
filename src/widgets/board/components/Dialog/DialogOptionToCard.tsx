@@ -5,6 +5,7 @@ import { FiMoreHorizontal, FiFileText } from "react-icons/fi";
 import { toast } from "sonner";
 import { MoveCardToAnotherList } from "../Card/components/MoveCardToAnotherList";
 import { CopyCardToAnotherList } from "../Card/components/CopyCardToAnotherList";
+import { AttachmentFileToCard } from "../Card/components/AttachmentFileToCard";
 
 interface DialogOptionToCardProps {
     cardId: string;
@@ -47,6 +48,8 @@ export function DialogOptionToCard({ cardId }: DialogOptionToCardProps) {
                     <CopyCardToAnotherList cardId={cardId} />
 
                     <MoveCardToAnotherList cardId={cardId} />
+
+                    <AttachmentFileToCard cardId={cardId} />    
                     
                     <button className="w-full flex justify-between items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors text-left" onClick={toggleTemplateCard}>
                         <div className="flex items-center gap-2">

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { FiX, FiTrash2, FiArrowRight, FiChevronDown, FiArrowLeft } from "react-icons/fi";
+import { FiX, FiTrash2, FiArrowRight, FiChevronDown, FiArrowLeft, FiFileText, FiShare2 } from "react-icons/fi";
 import { useCards, type Card } from "@/features/cards/index";
 import { useCardDetailContext } from "@/features/providers/CardDetailProvider";
 import conKhiImg from "@/shared/assets/img/conKhi.jpg";
@@ -62,7 +62,10 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
         handleAssignUserToCard, 
         handleUnassignUserFromCard ,
         handleUpdateDueDateOfCard,
-        handleMoveCardToList
+        handleMoveCardToList,
+        attachmentsByCardId,
+        handleGetAllAttachmentsOfCard,
+        handleDeleteAttachment,
     } = useCardDetailContext();
 
     useEffect(() => {
@@ -82,6 +85,20 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
         }
     }, [card.end_date]);
 
+    // fetch attachments of card
+    useEffect(() => {
+        if (!card?.id) return;
+        handleGetAllAttachmentsOfCard({ cardId: card.id }).catch(() => {});
+    }, [card.id]);
+
+    const attachments = attachmentsByCardId[card.id] || [];
+
+    function formatCreatedAt(iso?: string) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return isNaN(d.getTime()) ? "" : d.toLocaleString(); // có thể đổi style nếu muốn
+      }
+
     // fetch lists when board change
     useEffect(() => {
         if (selectedBoardId && isMovePopoverOpen) {
@@ -94,7 +111,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
         if (isMovePopoverOpen && card.board_id) {
             calculateSuggestedList();
         }
-    }, [isMovePopoverOpen, card.board_id, card.list_id])
+    }, [isMovePopoverOpen, card.board_id, card.list_id])    
 
     const calculateSuggestedList = async () => {
         try {
@@ -533,7 +550,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                 <div className="p-4 space-y-4">
                                     {/* Header */}
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-semibold">Di chuyển thẻ</h3>
+                                        <h3 className="text-lg font-semibold">Move card</h3>
                                         <button
                                             className="text-gray-500 hover:text-gray-700"
                                             onClick={() => setIsMovePopoverOpen(false)}
@@ -545,14 +562,14 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                     {/* Tabs */}
                                     <Tabs defaultValue="board" className="w-full">
                                         <TabsList className="grid w-full grid-cols-2">
-                                            <TabsTrigger value="inbox">Hộp thư đến</TabsTrigger>
-                                            <TabsTrigger value="board">Bảng thông tin</TabsTrigger>
+                                            <TabsTrigger value="inbox">Inbox</TabsTrigger>
+                                            <TabsTrigger value="board">Board</TabsTrigger>
                                         </TabsList>
                                         
                                         <TabsContent value="board" className="space-y-4 mt-4">
                                             {/* Suggested */}
                                             <div className="space-y-2">
-                                                <label className="text-sm font-semibold text-gray-700">Đã gợi ý</label>
+                                                <label className="text-sm font-semibold text-gray-700">Suggested</label>
                                                 {suggestedList.length > 0 ? (
                                                     <div className="space-y-2">
                                                         {suggestedList.map((list) => (
@@ -568,22 +585,22 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                                     </div>
                                                 ) : (
                                                     <div className="text-xs text-gray-400 px-3 py-2">
-                                                        Không có gợi ý
+                                                        No suggested
                                                     </div>
                                                 )}
                                             </div>
                                             
                                             {/* Destination Selection */}
                                             <div className="space-y-4">
-                                                <label className="text-xs font-semibold text-gray-600">Chọn đích đến</label>
+                                                <label className="text-xs font-semibold text-gray-600">Select destination</label>
                                                 
                                                 {/* Board Selection */}
                                                 <div className="space-y-2">
-                                                    <label className="text-sm font-medium text-gray-600">Bảng thông tin</label>
+                                                    <label className="text-sm font-medium text-gray-600">Board</label>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
-                                                                <span>{selectedBoard?.name || "Chọn bảng"}</span>
+                                                                <span>{selectedBoard?.name || "Select board"}</span>
                                                                 <FiChevronDown className="w-4 h-4 text-gray-500" />
                                                             </button>
                                                         </DropdownMenuTrigger>
@@ -609,11 +626,11 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                                 <div className="grid grid-cols-2 gap-4">
                                                     {/* List Selection */}
                                                     <div className="space-y-2">
-                                                        <label className="text-sm font-medium text-gray-600">Danh sách</label>
+                                                        <label className="text-sm font-medium text-gray-600">List</label>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
-                                                                    <span>{selectedList?.name || "Chọn danh sách"}</span>
+                                                                    <span>{selectedList?.name || "Select list"}</span>
                                                                     <FiChevronDown className="w-4 h-4 text-gray-500" />
                                                                 </button>
                                                             </DropdownMenuTrigger>
@@ -633,7 +650,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                                     
                                                     {/* Position Selection */}
                                                     <div className="space-y-2">
-                                                        <label className="text-sm font-medium text-gray-600">Vị trí</label>
+                                                        <label className="text-sm font-medium text-gray-600">Position</label>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
@@ -662,13 +679,13 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                                                 onClick={handleMoveCard}
                                             >
-                                                Di chuyển
+                                                Move 
                                             </Button>
                                         </TabsContent>
                                         
                                         <TabsContent value="inbox" className="mt-4">
                                             <div className="flex items-center gap-2 justify-between">
-                                                <label>Lựa chọn vị trí</label>
+                                                <label>Select position</label>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <button className="w-3xs flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
@@ -688,7 +705,7 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-4"
                                                     onClick={handleMoveCard}
                                                 >
-                                                    Di chuyển
+                                                    Move
                                                 </Button>
                                         </TabsContent>
                                     </Tabs>
@@ -863,6 +880,77 @@ export function DialogCardToList({ isOpen, onOpenChange, card, listName }: Dialo
                             </div>
                         </div>
                     </div>
+                    {/* Attachments */}
+                    <div className="space-y-2">
+                        {attachments.length === 0 ? (
+                            <p className="text-sm text-gray-500">No attachments</p>
+                        ) : (
+                            attachments.map((att) => (
+                            <div
+                                key={att.id}
+                                className="flex items-center justify-between gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer"
+                                onClick={() => window.open(att.url, "_blank", "noopener,noreferrer")}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    window.open(att.url, "_blank", "noopener,noreferrer");
+                                }
+                                }}
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-md bg-gray-900 text-white flex items-center justify-center flex-shrink-0">
+                                    <FiFileText className="w-5 h-5" />
+                                </div>
+
+                                <div className="min-w-0">
+                                    <div className="text-sm font-semibold truncate max-w-[280px]">
+                                    {att.file_name}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                    {formatCreatedAt(att.created_at)}
+                                    </div>
+                                </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                {/* Download */}
+                                <a
+                                    href={att.url}
+                                    download
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="p-2 rounded-md hover:bg-gray-200 transition-colors"
+                                    aria-label="Download attachment"
+                                    title="Download"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <FiShare2 className="w-4 h-4 text-gray-700" />
+                                </a>
+
+                                {/* Delete */}
+                                <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                        await handleDeleteAttachment({ cardId: card.id, attachmentId: att.id });
+                                        toast.success("Attachment deleted", { position: "top-center" });
+                                    } catch (err) {
+                                        toast.error("Failed to delete attachment", { position: "top-center" });
+                                    }
+                                    }}
+                                    className="p-2 rounded-md hover:bg-red-100 transition-colors"
+                                    title="Delete"
+                                    aria-label="Delete attachment"
+                                >
+                                    <FiTrash2 className="w-4 h-4 text-red-600" />
+                                </button>
+                                </div>
+                            </div>
+                            ))
+                        )}
+                        </div>
 
                     {/* Comments Section */}
                     <CardComments cardId={card.id} />

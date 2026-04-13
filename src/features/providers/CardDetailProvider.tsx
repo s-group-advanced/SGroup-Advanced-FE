@@ -1,4 +1,4 @@
-import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest, GetAllTemplatesOfBoardRequest, GetAllTemplatesOfBoardResponse, CreateCardFromTemplateResponse, CreateCardFromTemplateRequest, CreateNewCardTemplateResponse, CreateNewCardTemplateRequest, CopyCardToAnotherListResponse, CopyCardToAnotherListRequest, GetAllArchivedCardsOfBoardRequest, GetAllArchivedCardsOfBoardResponse, DeleteCardPermanentlyRequest, DeleteCardPermanentlyResponse } from "@/features/cards/api/type";
+import type { AssignedUserToCardRequest, AssignedUserToCardResponse, GetAllCommentsOfCardRequest, CreateCommentOnCardResponse, GetAllCommentsOfCardResponse, UnassignUserFromCardRequest, UpdateCardRequest, UpdateCardResponse, CreateCommentOnCardRequest, MoveCardToListRequest, UpdateDueDateOfCardRequest, UpdateDueDateOfCardResponse, UpdateCommentOnCardRequest, UpdateCommentOnCardResponse, DeleteCommentOnCardRequest, GetAllTemplatesOfBoardRequest, GetAllTemplatesOfBoardResponse, CreateCardFromTemplateResponse, CreateCardFromTemplateRequest, CreateNewCardTemplateResponse, CreateNewCardTemplateRequest, CopyCardToAnotherListResponse, CopyCardToAnotherListRequest, GetAllArchivedCardsOfBoardRequest, GetAllArchivedCardsOfBoardResponse, DeleteCardPermanentlyRequest, DeleteCardPermanentlyResponse, CreateAttachmentRequest, CreateAttachmentResponse, GetAttachmentOfCardRequest, GetAttachmentOfCardResponse, DeleteAttachmentRequest, SetCardCoverRequest, SetCardCoverResponse, Attachment } from "@/features/cards/api/type";
 import { type Card, type GetAllCardsOfBoardResponse, type GetAllCardsOfBoardRequest, useCards, type CreateCardRequest, type CreateCardResponse, type DeleteCardResponse, type DeleteCardRequest } from "@/features/cards/index";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -11,6 +11,7 @@ interface CardDetailContextType {
     archivedCards: Card[];
 
     // Functions
+    attachmentsByCardId: Record<string, Attachment[]>;
     getAllCardsOfBoard: (request: GetAllCardsOfBoardRequest) => Promise<GetAllCardsOfBoardResponse>;
     fetchAllArchivedCardsOfBoard: (request: GetAllArchivedCardsOfBoardRequest) => Promise<GetAllArchivedCardsOfBoardResponse>;
     fetchCreateCard: (request: CreateCardRequest) => Promise<CreateCardResponse>;
@@ -34,6 +35,10 @@ interface CardDetailContextType {
     handleCreateCardFromTemplate: (request: CreateCardFromTemplateRequest) => Promise<CreateCardFromTemplateResponse>;
     handleCreateNewCardTemplate: (request: CreateNewCardTemplateRequest) => Promise<CreateNewCardTemplateResponse>;
     handleCopyCardToAnotherList: (request: CopyCardToAnotherListRequest) => Promise<CopyCardToAnotherListResponse>;
+    handleAddAttachmentToCard: (request: CreateAttachmentRequest) => Promise<CreateAttachmentResponse>;
+    handleGetAllAttachmentsOfCard: (request: GetAttachmentOfCardRequest) => Promise<GetAttachmentOfCardResponse>;
+    handleDeleteAttachment: (request: DeleteAttachmentRequest) => Promise<void>;
+    handleSetCardCover: (request: SetCardCoverRequest) => Promise<SetCardCoverResponse>;
 }
 
 const CardDetailContext = createContext<CardDetailContextType | undefined>(undefined);
@@ -44,6 +49,7 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [archivedCards, setArchivedCards] = useState<Card[]>([]);
+    const [attachmentsByCardId, setAttachmentsByCardId] = useState<Record<string, Attachment[]>>({});
 
     const { 
         getAllCardsOfBoard, 
@@ -64,7 +70,11 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         createNewCardTemplate,
         copyCardToAnotherList,
         getAllArchivedCardsOfBoard,
-        deleteCardPermanently
+        deleteCardPermanently,
+        addAttachmentToCard,
+        getAllAttachmentsOfCard,
+        deleteAttachment,
+        setCardCover,
     } = useCards();
 
     // get data from api
@@ -496,11 +506,100 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         }
       };
 
+    // add attachment to card
+    const handleAddAttachmentToCard = async (
+        request: CreateAttachmentRequest
+    ): Promise<CreateAttachmentResponse> => {
+        try {
+        const created = await addAttachmentToCard(request);
+        setAttachmentsByCardId(prev => {
+            const current = prev[request.cardId] ?? [];
+            return {
+            ...prev,
+            [request.cardId]: [...current, created as unknown as Attachment],
+            };
+        });
+        if (boardId) {
+            await fetchCards(boardId); // realtime cho attachments_count và UI card list
+        }
+        return created;
+        } catch (err) {
+        setError("Failed to add attachment to card");
+        console.error(`Failed to add attachment to card: ${err}`);
+        throw err;
+        }
+    };
+
+    // get all attachments of card
+    const handleGetAllAttachmentsOfCard = async (
+        request: GetAttachmentOfCardRequest
+      ): Promise<GetAttachmentOfCardResponse> => {
+        try {
+          const data = await getAllAttachmentsOfCard(request);
+          // đề phòng type backend/FE đang lệch: GET “all” thường là array
+          const normalized: Attachment[] = Array.isArray(data)
+            ? (data as Attachment[])
+            : data
+              ? [data as unknown as Attachment]
+              : [];
+          setAttachmentsByCardId(prev => ({
+            ...prev,
+            [request.cardId]: normalized,
+          }));
+          return data;
+        } catch (err) {
+          setError("Failed to get attachments of card");
+          console.error(`Failed to get attachments of card: ${err}`);
+          throw err;
+        }
+      };
+
+    // delete attachment from card
+    const handleDeleteAttachment = async (
+        request: DeleteAttachmentRequest
+      ): Promise<void> => {
+        try {
+          await deleteAttachment(request);
+          setAttachmentsByCardId(prev => {
+            const current = prev[request.cardId] ?? [];
+            return {
+              ...prev,
+              [request.cardId]: current.filter(a => a.id !== request.attachmentId),
+            };
+          });
+          if (boardId) {
+            await fetchCards(boardId);
+          }
+        } catch (err) {
+          setError("Failed to delete attachment");
+          console.error(`Failed to delete attachment: ${err}`);
+          throw err;
+        }
+      };
+
+    // set card cover
+    const handleSetCardCover = async (
+        request: SetCardCoverRequest
+      ): Promise<SetCardCoverResponse> => {
+        try {
+          const data = await setCardCover(request);
+          if (boardId) {
+            await fetchCards(boardId);
+          }
+          return data;
+        } catch (err) {
+          setError("Failed to set card cover");
+          console.error(`Failed to set card cover: ${err}`);
+          throw err;
+        }
+      };
+
     const value: CardDetailContextType = {
         cards,
         isLoading,
         error,
         archivedCards,
+        attachmentsByCardId,
         getAllCardsOfBoard,
         fetchAllArchivedCardsOfBoard,
         fetchCreateCard,
@@ -524,6 +623,10 @@ export function CardDetailProvider({ children }: { children: React.ReactNode }) 
         handleCreateCardFromTemplate,
         handleCreateNewCardTemplate,
         handleCopyCardToAnotherList,
+        handleAddAttachmentToCard,
+        handleGetAllAttachmentsOfCard,
+        handleDeleteAttachment,
+        handleSetCardCover,
     }
 
     return (

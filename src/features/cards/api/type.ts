@@ -241,3 +241,46 @@ export interface DeleteCardPermanentlyRequest {
 export interface DeleteCardPermanentlyResponse {
   card: Card;
 }
+
+// Attachment
+export interface Attachment {
+  id: string;
+  card_id: string;
+  card?: Card;
+  uploader_id?: string;
+  uploader?: User;
+  file_name: string;
+  mime_type?: string;
+  size_bytes?: string;
+  url: string;
+  created_at: string;
+}
+
+export interface CreateAttachmentRequest {
+  cardId: string;
+  file_name: string;
+  url: string;
+  mime_type?: string;
+  size_bytes?: string;
+}
+
+export type CreateAttachmentResponse = Attachment;
+
+export interface GetAttachmentOfCardRequest {
+  cardId: string;
+}
+
+export type GetAttachmentOfCardResponse = Attachment;
+
+export interface DeleteAttachmentRequest {
+  cardId: string;
+  attachmentId: string;
+}
+
+export interface SetCardCoverRequest {
+  cardId: string;
+  attachmentId?: string;
+  color?: string;
+}
+
+export type SetCardCoverResponse = Card;

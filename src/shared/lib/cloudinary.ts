@@ -9,6 +9,12 @@ interface CloudinarySignature {
   cloud_name: string;
   api_key: string;
   folder: string;
+
+  // option for card attachment
+  public_id?: string;
+  resource_type?: string;
+  upload_url?: string;
+  access_mode?: string;
 }
 
 const getApiUrl = (path: string) => {
@@ -65,4 +71,70 @@ export const uploadToCloudinary = async (file: File): Promise<string> => {
     console.error("Cloudinary upload error:", error);
     throw error;
   }
+};
+
+// Get signature for card attachment
+export const getCardAttachmentSignature = async (dto: {
+  cardId: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+}): Promise<CloudinarySignature> => {
+  const response = await fetch(getApiUrl("/upload/signature/card-attachment"), {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(dto),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(
+      error.message || "Failed to get Cloudinary signature for card attachment",
+    );
+  }
+
+  return response.json();
+};
+
+// Upload file to Cloudinary for card attachment
+export const uploadFileToCloudinary = async (
+  file: File,
+  signatureData: CloudinarySignature,
+): Promise<string> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("signature", signatureData.signature);
+  formData.append("timestamp", signatureData.timestamp.toString());
+  formData.append("api_key", signatureData.api_key);
+  formData.append("folder", signatureData.folder);
+
+  if (signatureData.public_id)
+    formData.append("public_id", signatureData.public_id);
+  if (signatureData.resource_type)
+    formData.append("resource_type", signatureData.resource_type);
+
+  if (signatureData.access_mode)
+    formData.append("access_mode", signatureData.access_mode);
+
+  const uploadUrl =
+    signatureData.upload_url ??
+    `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/raw/upload`;
+
+  const response = await fetch(uploadUrl, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData?.error?.message || "Failed to upload file to Cloudinary",
+    );
+  }
+
+  const data: CloudinaryUploadResponse = await response.json();
+  return data.secure_url;
 };
